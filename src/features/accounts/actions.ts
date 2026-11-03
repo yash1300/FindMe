@@ -91,7 +91,7 @@ export async function completeOnboardingAction(_prev: ActionState, formData: For
     if (nameError) logger.warn("onboarding.account_name_failed", { code: nameError.code });
   }
 
-  redirect("/dashboard");
+  redirect(profile?.onboarding_completed_at ? "/dashboard" : "/onboarding");
 }
 
 export async function updateAccountNameAction(_prev: ActionState, formData: FormData): Promise<ActionState> {

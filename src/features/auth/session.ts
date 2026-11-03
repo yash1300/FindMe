@@ -21,6 +21,15 @@ export type Profile = {
   username: string;
   display_name: string;
   status: "draft" | "published" | "unpublished" | "suspended";
+  bio: string | null;
+  avatar_path: string | null;
+  cover_path: string | null;
+  category: string | null;
+  theme: unknown;
+  version: number;
+  is_indexable: boolean;
+  onboarding_completed_at: string | null;
+  username_changed_at: string | null;
 };
 
 /** Uses getUser, which validates the token with Supabase, rather than trusting the session cookie. */
@@ -51,7 +60,9 @@ export const getAccountContext = cache(async (userId: string) => {
       .single<Account>(),
     supabase
       .from("profiles")
-      .select("id, username, display_name, status")
+      .select(
+        "id, username, display_name, status, bio, avatar_path, cover_path, category, theme, version, is_indexable, onboarding_completed_at, username_changed_at",
+      )
       .eq("owner_id", userId)
       .order("created_at")
       .limit(1)
@@ -68,6 +79,20 @@ export const getAccountContext = cache(async (userId: string) => {
 /** For pages that need a finished, active account. Sends everyone else to the right place. */
 export async function requireOnboardedUser(returnTo: string = "/dashboard") {
   const user = await requireUser(returnTo);
+  const { account, profile } = await getAccountContext(user.id);
+
+  if (account.status === "suspended") redirect("/suspended");
+  if (!profile || !hasCurrentConsent(account) || !profile.onboarding_completed_at) redirect("/onboarding");
+
+  return { user, account, profile };
+}
+
+/**
+ * For anything that edits a page, including during onboarding. Actions call this themselves:
+ * a page's own check doesn't protect an action, which can be invoked directly.
+ */
+export async function requireProfileOwner() {
+  const user = await requireUser();
   const { account, profile } = await getAccountContext(user.id);
 
   if (account.status === "suspended") redirect("/suspended");

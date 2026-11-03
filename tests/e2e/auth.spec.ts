@@ -1,4 +1,4 @@
-﻿import { expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import {
   fillRegistration,
   linkFromEmail,
@@ -236,7 +236,7 @@ test.describe("public surface", () => {
   test("the home page leads to registration", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Your entire world. One link." })).toBeVisible();
-    await page.getByRole("link", { name: "Create your free page" }).click();
+    await page.getByRole("link", { name: "Create your free page" }).first().click();
     await expect(page).toHaveURL(/\/register$/);
   });
 

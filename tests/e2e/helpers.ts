@@ -1,4 +1,4 @@
-﻿import { expect, type Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 const MAILPIT_URL = process.env.E2E_MAILPIT_URL ?? "http://127.0.0.1:54324";
 
@@ -73,8 +73,16 @@ export async function registerAndConfirm(page: Page, identity = uniqueIdentity()
   await page.getByRole("button", { name: "Create your free page" }).click();
   await expect(page.getByRole("heading", { name: "Check your inbox" })).toBeVisible();
   await page.goto(await linkFromEmail(identity.email, /Confirm your FindMe email/));
+  await finishWizardLater(page);
   await expect(page).toHaveURL(/\/dashboard$/);
   return identity;
+}
+
+/** Leaves the onboarding wizard straight away, which every step offers. */
+export async function finishWizardLater(page: Page) {
+  await expect(page).toHaveURL(/\/onboarding$/);
+  await page.getByRole("button", { name: "Finish later" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
 }
 
 export async function logIn(page: Page, email: string, password = PASSWORD) {

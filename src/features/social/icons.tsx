@@ -1,0 +1,46 @@
+import { Globe, Mail } from "lucide-react";
+import type { ComponentType, SVGProps } from "react";
+import {
+  FaApple,
+  FaDiscord,
+  FaFacebook,
+  FaGithub,
+  FaInstagram,
+  FaLinkedin,
+  FaPinterest,
+  FaReddit,
+  FaSnapchat,
+  FaSoundcloud,
+  FaSpotify,
+  FaTelegram,
+  FaThreads,
+  FaTiktok,
+  FaTwitch,
+  FaWhatsapp,
+  FaXTwitter,
+  FaYoutube,
+} from "react-icons/fa6";
+import type { SocialPlatformId } from "./platforms";
+
+export const SOCIAL_ICONS: Record<SocialPlatformId, ComponentType<SVGProps<SVGSVGElement>>> = {
+  instagram: FaInstagram,
+  tiktok: FaTiktok,
+  youtube: FaYoutube,
+  facebook: FaFacebook,
+  x: FaXTwitter,
+  linkedin: FaLinkedin,
+  pinterest: FaPinterest,
+  snapchat: FaSnapchat,
+  twitch: FaTwitch,
+  discord: FaDiscord,
+  whatsapp: FaWhatsapp,
+  telegram: FaTelegram,
+  github: FaGithub,
+  reddit: FaReddit,
+  spotify: FaSpotify,
+  soundcloud: FaSoundcloud,
+  apple_music: FaApple,
+  threads: FaThreads,
+  email: Mail,
+  website: Globe,
+};

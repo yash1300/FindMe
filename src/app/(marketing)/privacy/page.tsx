@@ -19,7 +19,8 @@ export default function PrivacyPage() {
           <li>Account details: your name, email address, username, and password (stored only as a secure hash).</li>
           <li>If you sign in with Google: your name and email address from your Google account.</li>
           <li>A record of which version of these documents you accepted, and when.</li>
-          <li>Anything you choose to add to your page, which is public once you publish it.</li>
+          <li>Anything you add to your page, including images you upload, which is public once you publish it.</li>
+          <li>If you contact us: your name, email address and message.</li>
         </ul>
       </section>
       <section>
@@ -44,8 +45,22 @@ export default function PrivacyPage() {
         </p>
       </section>
       <section>
+        <h2>Forms on creators&apos; pages</h2>
+        <p>
+          If you fill in a newsletter or contact form on someone&apos;s FindMe page, your details and your consent are stored
+          for that creator, who can see and delete them. They are responsible for how they use your details after that.
+        </p>
+      </section>
+      <section>
+        <h2>Embedded content</h2>
+        <p>
+          Creators can embed videos and music. Video players load only when you press play. Spotify and SoundCloud players
+          load with the page. These services receive your IP address and may set their own cookies, under their own policies.
+        </p>
+      </section>
+      <section>
         <h2>Who processes your data</h2>
-        <p>We rely on service providers to run FindMe, including Supabase (database and sign-in) and Vercel (hosting).</p>
+        <p>We rely on service providers to run FindMe, including Supabase (database, sign-in and file storage), Vercel (hosting) and Resend (email).</p>
       </section>
       <section>
         <h2>Your choices</h2>

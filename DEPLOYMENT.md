@@ -4,7 +4,7 @@
 
 ## Environment variables
 
-Copy `.env.example` to `.env.local` for local work. In Vercel, set these per environment. `src/lib/env.ts` validates them when they're used. **`NEXT_PUBLIC_*` values are fixed at build time, so redeploy after changing them.**
+**Step-by-step instructions for getting every value are in [ENV_SETUP.md](ENV_SETUP.md).** Copy `.env.example` to `.env.local` for local work. In Vercel, set these per environment. `src/lib/env.ts` validates them when they're used. **`NEXT_PUBLIC_*` values are fixed at build time, so redeploy after changing them.**
 
 | Variable | Exposure | Needed | Purpose |
 | --- | --- | --- | --- |
@@ -14,7 +14,9 @@ Copy `.env.example` to `.env.local` for local work. In Vercel, set these per env
 | `SUPABASE_SERVICE_ROLE_KEY` | **Secret** | Yes | Rate limiting and later admin tasks. **Never** prefix with `NEXT_PUBLIC_` |
 | `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED` | Public | No | `true` shows the Google button. Leave unset until Google is configured |
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | Public | Before launch | Shown on the privacy and suspension pages. Hidden when unset |
-| `RESEND_API_KEY` | **Secret** | Phase 2+ | Transactional email |
+| `RESEND_API_KEY` | **Secret** | Recommended | Notification emails. Without it, messages are still saved |
+| `EMAIL_FROM` | Server | With Resend | Sender, on a domain verified in Resend |
+| `CONTACT_INBOX_EMAIL` | Server | Optional | Where marketing Contact page messages are sent |
 | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` | **Secret** | Phase 5 | Payments |
 
 ## Local development

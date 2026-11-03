@@ -76,7 +76,7 @@ describe("completeOnboardingAction", () => {
 
   it("records consent, creates the profile for this user only, and continues", async () => {
     getContext.mockResolvedValue(googleUser);
-    await expect(actions.completeOnboardingAction(IDLE_STATE, form(valid))).rejects.toMatchObject({ url: "/dashboard" });
+    await expect(actions.completeOnboardingAction(IDLE_STATE, form(valid))).rejects.toMatchObject({ url: "/onboarding" });
     expect(rpc).toHaveBeenCalledWith("record_consent", {
       p_terms_version: TERMS_VERSION,
       p_privacy_version: PRIVACY_VERSION,
@@ -95,7 +95,10 @@ describe("completeOnboardingAction", () => {
   });
 
   it("only asks for new consent when a profile already exists", async () => {
-    getContext.mockResolvedValue({ account: { status: "active", ...notConsented }, profile: { id: "p" } });
+    getContext.mockResolvedValue({
+      account: { status: "active", ...notConsented },
+      profile: { id: "p", onboarding_completed_at: "2026-01-01T00:00:00Z" },
+    });
     await expect(actions.completeOnboardingAction(IDLE_STATE, form({ consent: "on" }))).rejects.toMatchObject({
       url: "/dashboard",
     });

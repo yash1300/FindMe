@@ -32,33 +32,36 @@ A feature is only `[x]` once its implementation and tests have been verified.
 
 ## Phase 2 — MVP
 
-- [ ] Marketing site: Home, Features, Pricing, Themes, About, Contact, FAQ
-- [ ] Final Privacy and Terms text (needs legal review)
-- [ ] Full onboarding wizard
-- [ ] Dashboard shell, overview and mobile navigation
-- [ ] Rename username
-- [ ] Close the gap where suspended accounts can still write through the API (SECURITY.md)
-- [ ] `blocks`, `social_links`, `theme_presets` migrations
-- [ ] Storage buckets and upload validation
-- [ ] Link manager: add, edit, delete, duplicate, enable or disable, drag-and-drop with rollback
-- [ ] URL validation and dangerous-scheme blocking
-- [ ] Social links: 20 platforms, reorder, visibility
-- [ ] Public profile engine with SEO metadata
-- [ ] Core themes
-- [ ] Publish, unpublish, and draft states
-- [ ] Sitemap and robots
-- [ ] Transactional email through Resend
+- [x] Marketing site: Home, Features, Pricing, Themes, About, Contact, FAQ
+- [~] Privacy and Terms text: updated, but still drafts. Needs a lawyer
+- [x] Full onboarding wizard
+- [x] Dashboard shell, overview and mobile navigation. Analytics, Integrations and Billing join in their phases
+- [x] Rename username, with a 30-day hold on old names
+- [x] Suspended accounts can no longer write through the API
+- [x] `blocks`, `social_links`, `leads`, `contact_submissions`, `username_history` migrations
+- [x] Storage bucket and upload validation
+- [x] Link manager: add, edit, delete, duplicate, enable or disable, drag-and-drop with rollback
+- [x] URL validation and dangerous-scheme blocking
+- [~] Social links: 20 platforms, adding and link checks verified. Reordering and hiding use the same tested components, but have no browser test of their own
+- [x] Public profile engine with SEO metadata and real 404s
+- [x] Core themes
+- [x] Publish, unpublish, and draft states
+- [~] Sitemap and robots: served and checked, but a published profile appearing in the sitemap has no test yet
+- [~] Transactional email through Resend: written, never run. Needs a Resend key
 
 ## Phase 3 — Creator experience
 
-- [ ] Visual editor: settings panel and live preview
-- [ ] Undo, redo, autosave, reset, save indicators
-- [ ] Concurrent-edit protection
-- [ ] All 18 block types, with embed-provider allow-list
-- [ ] All 10 themes and full customisation
-- [ ] Link scheduling and expiry
-- [ ] QR codes: PNG, SVG, colours, logo
-- [ ] Sharing: WhatsApp, Facebook, X, LinkedIn, email, native
+- [x] Visual editor: settings panel and live preview at phone and desktop sizes
+- [ ] Contextual controls: clicking an element in the preview to edit it. Not built; every setting is in the side panel
+- [x] Undo, redo, autosave, reset, save indicators
+- [x] Concurrent-edit protection
+- [x] All 18 block types, with embed-provider allow-list. Real third-party players weren't loaded in tests, only their URLs checked
+- [x] All 10 themes and full customisation. Each setting's effect on the page is checked for a sample, not exhaustively
+- [x] Link scheduling and expiry
+- [x] QR codes: PNG, SVG, colours, logo. Scanning verified by decoding generated codes without a logo graphic on top; test a printed code with a phone
+- [~] Sharing: WhatsApp, Facebook, X, LinkedIn and email links verified. The native share button needs a real phone to test
+
+**Added beyond the plan:** newsletter and contact forms needed somewhere to store and read submissions to be real features, so basic lead storage and the Audience page arrived here instead of Phase 6. Its CSV export and custom fields are still Phase 6.
 
 ## Phase 4 — Analytics
 
@@ -86,7 +89,8 @@ Needs: plan prices, legal entity and GSTIN, Razorpay sandbox keys.
 
 - [ ] Multiple profiles
 - [ ] Custom domains: Vercel API, DNS verification
-- [ ] Leads: newsletter, contact forms, CSV export, deletion
+- [ ] Leads: CSV export and custom fields. Forms, consent and deletion shipped in Phase 3
+- [ ] Clean up replaced and unused images in storage
 - [ ] Admin dashboard, user management, moderation
 - [ ] Atomic audit logging for admin actions
 - [ ] Account data export and self-service deletion
@@ -116,3 +120,4 @@ Each item needs approval because of cost and privacy impact.
 | Date | Change |
 | --- | --- |
 | 2026-11-03 | Plan created; Phase 1 implemented and verified locally |
+| 2026-11-04 | Phases 2 and 3 implemented and verified locally. Theme presets stay in code until the Phase 6 admin panel needs to edit them |

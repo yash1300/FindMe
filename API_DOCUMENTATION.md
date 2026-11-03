@@ -53,13 +53,45 @@ All of these validate with Zod on the server. Form actions return `{ status: "su
 | `changePasswordAction` | User | User | Re-checks the current password |
 | `changeEmailAction` | User | User | The new address must confirm |
 
+### Editor actions
+
+These take typed objects rather than forms, and return `{ ok: true, ... }` or `{ ok: false, code?, message, fieldErrors? }`, where `code` can be `conflict` or `rate_limited`. Every one checks the session and account itself, and invalidates the public page's cache.
+
+| Action | Rate limit | Notes |
+| --- | --- | --- |
+| `createBlockAction`, `updateBlockAction` | User | Validated against the block's schema. Images must be the user's own uploads |
+| `setBlockVisibilityAction`, `deleteBlockAction`, `duplicateBlockAction` | User | |
+| `reorderBlocksAction` | User | Returns `conflict` if the list is out of date, and the client rolls back |
+| `saveSocialLinkAction` | User | Adds or updates. The link must really go to that platform's site |
+| `setSocialVisibilityAction`, `deleteSocialLinkAction`, `reorderSocialLinksAction` | User | |
+| `uploadMediaAction` | User, 40 an hour | `FormData`. Up to 5 MB. Type comes from the file's bytes |
+| `updateProfileDetailsAction`, `saveThemeAction` | User | Require the version the edit started from, and return `conflict` if it's stale |
+| `changeUsernameAction` | User | One a day. Old name held for 30 days |
+| `setPublishStatusAction` | User | Published or unpublished. Can't lift a suspension |
+| `completeWizardAction` | — | Finishes onboarding, optionally publishing |
+
+### Public form actions
+
+| Action | Rate limit | Notes |
+| --- | --- | --- |
+| `submitLeadAction` | IP, and IP per form | Reads the form through `public_blocks`, so hidden or expired forms can't collect anything. Includes a spam trap. Repeats get the same reply |
+| `deleteLeadAction` | — | Owner only |
+| `submitContactAction` | IP | Stored first, then emailed if Resend is configured |
+
+### Generated routes
+
+`GET /sitemap.xml` lists marketing pages and indexable published profiles, cached for up to an hour. `GET /robots.txt` excludes private areas.
+
+### `GET /{username}`
+
+The public page. Returns **404** for unknown, draft, unpublished or suspended pages, and a **308** to the lowercase address for names in other cases.
+
 ## Planned
 
 | Endpoint | Phase | Purpose |
 | --- | --- | --- |
 | `POST /api/events` | 4 | View beacon: filters bots, removes duplicates, never trusts client IDs without checking |
 | `GET /l/{blockId}` | 4 | Click tracking and redirect to the **stored** URL only |
-| `GET /api/qr/{profileId}` | 3 | PNG or SVG QR code |
 | `POST /api/webhooks/razorpay` | 5 | Signature-verified, idempotent |
 | `GET /api/leads/export` | 6 | CSV for the owner, strict authorisation |
 | `GET /api/account/export` | 6 | Personal data export |

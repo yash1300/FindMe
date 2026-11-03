@@ -16,6 +16,10 @@ export const RATE_LIMITS = {
   usernameCheckByIp: { limit: 60, windowSeconds: 60 },
   claimByUser: { limit: 20, windowSeconds: 300 },
   credentialChangeByUser: { limit: 8, windowSeconds: 900 },
+  contentWriteByUser: { limit: 300, windowSeconds: 300 },
+  uploadByUser: { limit: 40, windowSeconds: 3600 },
+  leadByIp: { limit: 20, windowSeconds: 3600 },
+  leadByIpAndBlock: { limit: 5, windowSeconds: 3600 },
 } as const satisfies Record<string, RateLimitRule>;
 
 export type RateLimitResult =

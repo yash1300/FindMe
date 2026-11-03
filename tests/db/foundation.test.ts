@@ -320,10 +320,14 @@ describe("internal tables", () => {
     // is_valid_username_format stays open on purpose: it is pure, and CHECK constraints call it.
     expect(byGrantee("anon")).toEqual(["is_username_available", "is_valid_username_format"]);
     expect(byGrantee("authenticated")).toEqual([
+      "is_active_account",
       "is_admin",
       "is_username_available",
       "is_valid_username_format",
+      "owns_profile",
       "record_consent",
+      "reorder_blocks",
+      "reorder_social_links",
     ]);
   });
 });

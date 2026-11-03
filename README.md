@@ -2,11 +2,11 @@
 
 **Your entire world. One link.** A link-in-bio platform for creators, built India-first.
 
-> **Status: early development.** Accounts and authentication work on a local stack (Phase 1). There are no public profile pages yet, and nothing is deployed. See [PROJECT_PLAN.md](PROJECT_PLAN.md) for exact progress.
+> **Status: in development.** Accounts, the page builder, themes, public pages and QR codes work on a local stack (Phases 1–3). Analytics and payments aren't built yet, and nothing is deployed. See [PROJECT_PLAN.md](PROJECT_PLAN.md) for exact progress.
 
 ## Stack
 
-Next.js (App Router), React, TypeScript, Tailwind CSS, shadcn/ui, Supabase (Postgres, Auth, Storage), Zod, Vitest, and Playwright. Razorpay and Resend arrive in later phases.
+Next.js (App Router), React, TypeScript, Tailwind CSS, shadcn/ui, Supabase (Postgres, Auth, Storage), Zod, Vitest, and Playwright. Resend handles notification email, and Razorpay arrives in Phase 5.
 
 ## Getting started
 
@@ -15,7 +15,7 @@ Requires Node.js 22.12 or later, and Docker Desktop running for the local Supaba
 ```bash
 npm install
 npx supabase start          # the first run downloads several GB of images
-cp .env.example .env.local  # paste in the values printed by the command above
+cp .env.example .env.local  # paste in the values printed by the command above, or see ENV_SETUP.md for a hosted project
 npm run dev
 ```
 
@@ -47,4 +47,5 @@ Use `127.0.0.1` rather than `localhost`, so the address matches `NEXT_PUBLIC_APP
 | [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) | Tables, access rules and planned schema |
 | [API_DOCUMENTATION.md](API_DOCUMENTATION.md) | Route handlers and Server Actions |
 | [SECURITY.md](SECURITY.md) | Threat model, control status and known gaps |
+| [ENV_SETUP.md](ENV_SETUP.md) | Step-by-step guide to getting every value for your `.env.local` |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Environment variables and setup for Supabase, Google and Vercel |

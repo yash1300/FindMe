@@ -1,0 +1,16 @@
+export const CREATOR_CATEGORIES = [
+  "Creator",
+  "Influencer",
+  "Artist",
+  "Musician",
+  "Writer",
+  "Photographer",
+  "Designer",
+  "Developer",
+  "Educator",
+  "Coach",
+  "Freelancer",
+  "Small business",
+  "Non-profit",
+  "Other",
+] as const;

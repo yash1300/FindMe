@@ -90,9 +90,17 @@ Google sign-ups carry no username or consent, so onboarding collects both. A use
 
 `cacheComponents` and `partialPrefetching` are on. Pages prerender a static shell holding no user data, and session-dependent content streams in behind `<Suspense>`. Sessions are deliberately not cached with `use cache: private`, so a suspension takes effect on the next request. `getCurrentUser` awaits `connection()` first, which keeps it out of prerendering and prefetch passes.
 
-### Public profile (Phase 2)
+### Public profile
 
-`/[username]` lowercases and validates the name, reads from `public_profiles` (published profiles of active accounts only), and renders server components. It is cached per profile and invalidated on publish or edit. Interactive parts such as contact forms and video facades are small client islands.
+`/[username]` lowercases and validates the name, then reads from the `public_*` views as an anonymous visitor, so private data can't reach it. The result is cached with `use cache`, tagged per profile, and invalidated by every edit; a 60-second lifetime covers scheduled links starting or ending, which no edit triggers. Interactive parts such as contact forms and video players are small client islands.
+
+`ProfileView` is the one renderer behind public pages, the editor's live preview and the marketing demos, so what creators see is what visitors get.
+
+`htmlLimitedBots: /.*/` in `next.config.ts` makes metadata block rather than stream. Without it, the response commits to a 200 before the page can answer 404.
+
+### Editing
+
+Blocks and social links update optimistically and roll back if the server refuses. The appearance editor keeps an undo history in the browser and autosaves after a short pause. Saves run one at a time, each carrying the version from the last, so a change made elsewhere is reported as a conflict instead of being overwritten.
 
 ### Link click (Phase 4)
 
@@ -105,6 +113,8 @@ Checkout starts on the server. The frontend success callback only updates the UI
 ## 5. Theming
 
 A profile stores a validated `theme` JSON document. The renderer maps it to CSS custom properties on the page root, so themes need no per-theme JavaScript and add almost nothing to page weight. Colours, gradients and fonts come from validated values; **free-form CSS is never accepted**.
+
+Presets live in `src/features/themes/presets.ts`. Card and field corners have their own capped radii, because a tall element given the 9999px pill radius becomes an ellipse and clips its contents.
 
 The dashboard uses fixed brand tokens: Midnight `#111827`, White `#FFFFFF`, Electric Violet `#7657F6`, Mint `#20C997`, Soft Grey `#F3F4F6`. Public profile themes are not limited to them.
 
@@ -129,5 +139,6 @@ All configuration is validated by `src/lib/env.ts`. See [DEPLOYMENT.md](DEPLOYME
 - **CSP allows inline scripts.** Nonce-based CSP forces dynamic rendering of every page, which conflicts with caching public profiles. We ship a restrictive CSP with `'unsafe-inline'` for scripts now and rely on React escaping and the ban on raw user HTML as the main XSS controls. To be revisited in the Phase 8 audit; see [SECURITY.md](SECURITY.md).
 - **Auth calls come from the server.** Server actions let us validate and rate-limit, but Supabase then sees Vercel's IP rather than the user's, so its per-IP limits must be raised and our limiter becomes the one that matters. See [DEPLOYMENT.md](DEPLOYMENT.md).
 - **Postgres rate limiting** adds a DB round trip per limited request. This is acceptable because only auth and form endpoints are limited; analytics ingestion will need its own approach in Phase 4.
+- **Dashboard links don't prefetch.** Those pages are per-user and dynamic, so it would gain little, and each save would otherwise re-prefetch every link with its own auth round trip.
 - **Unverified accounts can hold usernames.** A cleanup job for long-unverified accounts is planned for Phase 6.
 - **PGlite is not Supabase.** Database tests run as a superuser against stubbed roles, and PGlite's Postgres version can differ from production. The E2E suite covers the gap by attacking real PostgREST.
