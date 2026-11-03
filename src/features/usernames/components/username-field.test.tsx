@@ -69,6 +69,22 @@ describe("UsernameField", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it("shows a server error for the submitted value, until the user edits the field", async () => {
+    respond({ available: true });
+    const message = "You changed your username recently.";
+    const { rerender } = render(<UsernameField baseUrl="https://app.example.test" defaultValue="asha" />);
+    const user = userEvent.setup();
+    const input = screen.getByLabelText("Username");
+    await user.clear(input);
+    await user.type(input, "ashakumar");
+
+    rerender(<UsernameField baseUrl="https://app.example.test" defaultValue="asha" error={message} />);
+    expect(screen.getByText(message)).toBeInTheDocument();
+
+    await user.type(input, "x");
+    expect(screen.queryByText(message)).not.toBeInTheDocument();
+  });
+
   it("does not claim availability when the check fails", async () => {
     const { user, input } = setup();
     respond({}, false);

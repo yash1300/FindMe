@@ -23,7 +23,8 @@ export default defineConfig({
   webServer: {
     command: "npm run start -- --hostname 127.0.0.1 --port 3000",
     url: `${baseURL}/api/health`,
-    reuseExistingServer: !process.env.CI,
+    // Never reuse one: a server left running would keep serving a build that's since been replaced.
+    reuseExistingServer: false,
     timeout: 60_000,
   },
 });

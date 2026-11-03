@@ -44,6 +44,12 @@ describe("privileged credential boundaries", () => {
     expect(offenders).toEqual([]);
   });
 
+  it("uses the pill-capable button radius only on buttons", () => {
+    const css = readFileSync(join(root, "src/features/profile/profile.css"), "utf8");
+    const uses = css.match(/var\(--fm-radius\)/g) ?? [];
+    expect(uses).toHaveLength(1);
+  });
+
   it("does not render raw HTML anywhere", () => {
     const offenders = files.filter((file) => file.content.includes("dangerouslySetInnerHTML"));
     expect(offenders.map((file) => file.path)).toEqual([]);

@@ -37,6 +37,7 @@ Status per control: ✅ implemented and tested, including against the local Supa
 - ✅ Column-level grants on `accounts`.
 - ✅ Suspended status cannot be set or cleared by the user.
 - ✅ Public reads go through a view that excludes `owner_id`.
+- ✅ Suspended accounts can't write, even by calling the API directly.
 - ✅ Admin role table writable only by service role.
 - 🗓️ Admin panel server-side role checks (Phase 4 for the basics, Phase 6 for the panel).
 
@@ -45,8 +46,13 @@ Status per control: ✅ implemented and tested, including against the local Supa
 - ✅ Zod validation on the server for every action.
 - ✅ Username rules enforced in both Zod and the database.
 - ✅ `safeRedirectPath` blocks absolute, protocol-relative, backslash and encoded redirects.
-- 🗓️ URL scheme allow-list for links and embed-provider allow-list (Phase 2–3).
-- 🗓️ File upload validation: type sniffing, size limits, per-user storage paths (Phase 2).
+- ✅ URLs: only public http(s) addresses are accepted, with no embedded credentials. Checked on write, at render, and for `url` fields by a database `CHECK`.
+- ✅ Embeds: built only from validated IDs for YouTube, Vimeo, Spotify and SoundCloud, sandboxed, and limited by the CSP's `frame-src`. Video players load only on press.
+- ✅ Social links must really point to the named platform's site. This doesn't confirm who owns the account, and we never claim it does.
+- ✅ Themes are data, never CSS: only strict hex colours and fixed options are accepted.
+- ✅ Uploads: type detected from file bytes, 5 MB limit, no SVG, per-user folders enforced by storage policies.
+- ✅ Public forms: consent required and recorded, rate limited, spam trap, and server-side checks that the form is live.
+- ✅ User text is escaped by React, confirmed by a test that stores script tags and checks they don't run.
 
 ### Platform
 
@@ -63,6 +69,8 @@ Status per control: ✅ implemented and tested, including against the local Supa
 - 🗓️ No raw IPs in analytics; daily-rotating visitor hash; retention job (Phase 4).
 - 🗓️ Internal previews excluded from analytics (Phase 4).
 - 🗓️ Account data export and self-service deletion (Phase 6). **Must ship before public launch.**
+- ✅ Form submissions record the exact consent wording and time. Creators can delete them.
+- ✅ No third-party video code loads until a visitor presses play. Spotify and SoundCloud players load with the page, and the Privacy Policy says so.
 - 🗓️ Lawyer review of legal text (Phase 8).
 
 ## Known gaps and accepted risks
@@ -72,11 +80,13 @@ These are open and will be re-reviewed in the Phase 8 audit.
 1. **CSP includes `'unsafe-inline'` for scripts.** Nonces would make every page dynamic and defeat caching of public profiles. Mitigated by React escaping and no raw user HTML.
 2. **Reserved usernames are an exact-match list.** Substring matching causes false positives on legitimate names, so determined look-alikes are left to moderation (Phase 6).
 3. **Client IP comes from `x-forwarded-for`,** which is only trustworthy behind Vercel. Self-hosting requires reviewing `src/lib/security/client-ip.ts`.
-4. **Username release.** A renamed username becomes available immediately, so it could be claimed for impersonation. A cool-down is due when rename ships.
+4. **Uploaded images keep their metadata.** Photos can carry location data in EXIF. The original stays reachable at its public storage URL, even if the optimised copies visitors normally load drop it (not verified). Stripping it on upload needs an image-processing step, due before launch.
 5. **Audit log writes aren't wired up yet.** The append-only table exists, but nothing writes to it, because no admin actions exist so far. Phase 6 must make admin actions and their audit entries atomic.
-6. **Suspended accounts can still write through the API.** A suspended user is locked out of the app and their page is hidden from the public, but RLS policies don't check account status, so a direct API call could still edit their own rows. To be closed in Phase 2, before user content tables ship.
+6. **Storage isn't cleaned up or capped per user.** Replaced images stay in storage, and uploads are limited by rate rather than total size. Cleanup is planned for Phase 6.
 7. **Consent can be self-asserted through direct signup.** Someone calling the Auth API directly can put consent versions in their signup metadata. They are asserting consent for themselves, so this is low risk, but the record shows only what the client sent.
-8. **Dev tooling audit findings.** `npm audit` reports moderate findings in the ESLint and shadcn CLI toolchains. These are dev dependencies and don't ship to users. `npm audit --omit=dev` is clean as of 2026-11-03. The automated fixes are major downgrades, so they haven't been applied.
+8. **Malformed URLs return 500.** A single path segment that can't be percent-decoded, like `/%E0%A4%A`, gets a generic 500 from the framework before our code runs. It exposes nothing, and only scanners send these.
+9. **Public page caching can lag a suspension.** A suspended page can remain visible for up to about a minute, because suspension has no admin action to invalidate the cache yet. Phase 6's admin panel must invalidate it.
+10. **Dev tooling audit findings.** `npm audit` reports moderate findings in the ESLint and shadcn CLI toolchains. These are dev dependencies and don't ship to users. `npm audit --omit=dev` is clean as of 2026-11-03. The automated fixes are major downgrades, so they haven't been applied.
 
 ## Pre-launch checklist
 

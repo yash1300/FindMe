@@ -82,9 +82,60 @@ Admins can read it. Writes require the service role.
 
 `bucket_key` (PK), `window_start`, `count`. Used only through `check_rate_limit()`, which only the service role can execute. Keys hold SHA-256 hashes, never raw emails or IPs. Stale rows are pruned on about 1% of calls.
 
+Migration: [`supabase/migrations/20261104000000_page_content.sql`](supabase/migrations/20261104000000_page_content.sql)
+
+### New `profiles` columns ✅
+
+| Column | Notes |
+| --- | --- |
+| `version` | Rises when content changes (name, bio, images, category, theme, indexing). Saves include the version they started from, so a stale tab can't overwrite newer work. Publishing and renaming don't count, because they can't lose anyone's edits |
+| `is_indexable` | Whether search engines may list the page |
+| `onboarding_completed_at` | Null sends the user to the wizard |
+| `username_changed_at` | Limits renames to one a day |
+
+### `blocks` ✅
+
+All page content, including links. Replaces the spec's `links` and `content_blocks`.
+
+| Column | Notes |
+| --- | --- |
+| `profile_id` | FK, cascade delete. Can't be changed |
+| `type` | One of the 18 block types. Can't be changed |
+| `config` | jsonb, up to 16 KB. Validated per type by Zod on write and again at render. A `CHECK` rejects any `url` or `linkUrl` that isn't http(s) |
+| `position` | Set by trigger on insert, and otherwise only by `reorder_blocks` |
+| `is_visible`, `starts_at`, `ends_at` | Visibility and schedule. A `CHECK` requires the end to be after the start |
+
+Limited to 200 per profile by trigger.
+
+**RLS:** owners read their own. Writes also require an active account, through `owns_profile()`.
+
+### `social_links` ✅
+
+`platform` (one of 20), `url` (http, https or mailto only), `position`, `is_visible`. Unique on `(profile_id, platform)`. Same RLS rules as `blocks`.
+
+### `public_blocks` and `public_social_links` views ✅
+
+The only public window onto page content: visible items, on published pages, of active accounts. `public_blocks` also applies the schedule, so hidden, future and expired content never leaves the database.
+
+### `username_history` ✅
+
+Released usernames, held for 30 days for their former owner. Closed to clients.
+
+### `leads` ✅
+
+Newsletter signups and contact-form messages for a page: `kind`, `email`, `name`, `message`, `consent_text`, `consent_at`. Visitors can't insert directly: submissions go through a server action with rate limiting, a spam trap, and a check that the form is really live. Only the page owner can read or delete them. Duplicates are prevented by a unique constraint on `(profile_id, kind, email, message)`.
+
+### `contact_submissions` ✅
+
+Messages from the marketing Contact page. Written by the server, readable only by staff. Until the admin panel exists, read them in Supabase's Table Editor.
+
+### Storage: `profile-media` bucket ✅
+
+Public read, because page images must load for anyone. 5 MB limit; PNG, JPEG, WebP and GIF only, with no SVG since it can carry scripts. Users can upload and delete only inside a folder named after their user ID. The server also checks each file's real type from its first bytes.
+
 ## Username rules
 
-3–30 characters; lowercase letters, digits, `_` and `-`; must start and end with a letter or digit; no consecutive separators; not in `reserved_usernames`. Enforced in the shared Zod schema and again in the database by a `CHECK` constraint and the `validate_profile_username` trigger. Input is lowercased on write, which is what makes uniqueness case-insensitive.
+3–30 characters; lowercase letters, digits, `_` and `-`; must start and end with a letter or digit; no consecutive separators; not in `reserved_usernames`; not released by someone else in the last 30 days. Enforced in the shared Zod schema and again in the database by a `CHECK` constraint and the `validate_profile_username` trigger. Input is lowercased on write, which is what makes uniqueness case-insensitive.
 
 ## Functions
 
@@ -95,6 +146,9 @@ Admins can read it. Writes require the service role.
 | `record_consent(text, text)` | authenticated | Records consent for the caller with the server's time |
 | `is_admin()` | authenticated, service role | Used by policies. True if the caller has any row in `admin_roles` (admin or moderator) |
 | `is_valid_username_format(text)` | everyone | Pure format check. Open on purpose, because `CHECK` constraints call it as the current user |
+| `is_active_account()` | authenticated, service role | Used by write policies, so suspended accounts can't write |
+| `owns_profile(uuid)` | authenticated, service role | True when the caller may change this profile's content |
+| `reorder_blocks(uuid, uuid[])`, `reorder_social_links(uuid, uuid[])` | authenticated | All or nothing. A partial, duplicate or foreign list is rejected |
 | `check_rate_limit(text, int, int)` | service role | Atomic fixed-window counter. Returns `allowed` and `retry_after_seconds` |
 
 All `SECURITY DEFINER` functions set an empty `search_path` and use fully qualified names, and default `PUBLIC` execute rights are revoked.
@@ -103,9 +157,7 @@ All `SECURITY DEFINER` functions set an empty `search_path` and use fully qualif
 
 | Table | Phase | Purpose | Replaces in the spec |
 | --- | --- | --- | --- |
-| `blocks` 🗓️ | 2 | All page content: `type`, `config` jsonb, `position`, `is_visible`, `starts_at`, `ends_at`. Index on `(profile_id, position)` | `links`, `content_blocks` |
-| `social_links` 🗓️ | 2 | `platform`, `url`, `position`, `is_visible`; unique on `(profile_id, platform)` | |
-| `theme_presets` 🗓️ | 2 | Named theme documents and the plan they require | `profile_themes` |
+| `theme_presets` 🗓️ | 6 | Admin-editable theme documents. Presets are in code (`src/features/themes/presets.ts`) until something needs to edit them | `profile_themes` |
 | `analytics_events` 🗓️ | 4 | Raw events with category fields and a daily salted visitor hash. **No raw IP.** Retention job | `profile_views`, `link_clicks` |
 | `analytics_daily` 🗓️ | 4 | Aggregates unique on `(profile_id, block_id, day, dimension)` | |
 | `subscription_plans` 🗓️ | 5 | Prices per currency and interval, limits and entitlements as data | |
@@ -114,7 +166,6 @@ All `SECURITY DEFINER` functions set an empty `search_path` and use fully qualif
 | `invoices` 🗓️ | 5 | Amounts in minor units, tax lines captured at time of sale, refund state | |
 | `tax_rules` 🗓️ | 5 | Configurable rates by jurisdiction and date; no tax logic in code | |
 | `custom_domains` 🗓️ | 6 | Hostname (unique), verification token, status | |
-| `leads` 🗓️ | 6 | Newsletter and contact entries, custom fields, consent text and time | `contact_submissions` |
 | `reports` 🗓️ | 6 | Abuse reports for profiles and links | |
 | `moderation_actions` 🗓️ | 6 | Decisions and reasons | |
 | `notifications` 🗓️ | 6 | In-app messages, only if a feature needs them | |

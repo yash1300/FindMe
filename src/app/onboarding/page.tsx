@@ -8,6 +8,9 @@ import { OnboardingForm } from "@/features/accounts/components/onboarding-form";
 import { signOutAction } from "@/features/auth/actions";
 import { getAccountContext, requireUser } from "@/features/auth/session";
 import { hasCurrentConsent } from "@/features/legal/versions";
+import { OnboardingWizard } from "@/features/onboarding/components/wizard";
+import { getOwnerContent } from "@/features/profile/queries";
+import { parseTheme } from "@/features/themes/presets";
 import { getAppUrl } from "@/lib/env";
 
 export const metadata: Metadata = { title: "Set up your page", robots: { index: false, follow: false } };
@@ -19,27 +22,42 @@ async function OnboardingContent() {
   if (account.status === "suspended") redirect("/suspended");
 
   const needsConsent = !hasCurrentConsent(account);
-  if (profile && !needsConsent) redirect("/dashboard");
 
+  // People without a username or current consent, such as new Google users, start here.
+  if (!profile || needsConsent) {
+    return (
+      <>
+        <div className="grid gap-1">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {profile ? "We've updated our terms" : "Claim your link"}
+          </h1>
+          <p className="text-muted-foreground">
+            {profile
+              ? "Please review and accept them to keep using FindMe."
+              : "Choose the username people will use to find you."}
+          </p>
+        </div>
+        <OnboardingForm
+          baseUrl={getAppUrl()}
+          defaultName={account.display_name}
+          needsProfile={!profile}
+          needsConsent={needsConsent}
+        />
+      </>
+    );
+  }
+
+  if (profile.onboarding_completed_at) redirect("/dashboard");
+
+  const { blocks, socialLinks } = await getOwnerContent(profile.id);
   return (
-    <>
-      <div className="grid gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {profile ? "We've updated our terms" : "Claim your link"}
-        </h1>
-        <p className="text-muted-foreground">
-          {profile
-            ? "Please review and accept them to keep using FindMe."
-            : "Choose the username people will use to find you."}
-        </p>
-      </div>
-      <OnboardingForm
-        baseUrl={getAppUrl()}
-        defaultName={account.display_name}
-        needsProfile={!profile}
-        needsConsent={needsConsent}
-      />
-    </>
+    <OnboardingWizard
+      baseUrl={getAppUrl()}
+      profile={profile}
+      theme={parseTheme(profile.theme)}
+      blocks={blocks}
+      socialLinks={socialLinks}
+    />
   );
 }
 
@@ -54,7 +72,7 @@ export default function OnboardingPage() {
           </Button>
         </form>
       </header>
-      <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 py-10">
+      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-6 py-10">
         <Suspense fallback={<FormSkeleton />}>
           <OnboardingContent />
         </Suspense>

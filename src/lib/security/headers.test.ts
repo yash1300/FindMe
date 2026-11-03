@@ -11,6 +11,14 @@ describe("buildContentSecurityPolicy", () => {
     expect(csp).toContain("base-uri 'self'");
   });
 
+  it("allows frames only from the known embed providers", () => {
+    const csp = buildContentSecurityPolicy({ isProduction: true });
+    const frames = csp.split("; ").find((part) => part.startsWith("frame-src"));
+    expect(frames).toBe(
+      "frame-src https://www.youtube-nocookie.com https://player.vimeo.com https://open.spotify.com https://w.soundcloud.com",
+    );
+  });
+
   it("allows eval only in development", () => {
     expect(buildContentSecurityPolicy({ isProduction: true })).not.toContain("unsafe-eval");
     expect(buildContentSecurityPolicy({ isProduction: false })).toContain("unsafe-eval");

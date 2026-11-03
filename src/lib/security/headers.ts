@@ -1,3 +1,5 @@
+import { EMBED_FRAME_ORIGINS } from "../../features/blocks/embeds";
+
 type HeaderOptions = {
   isProduction: boolean;
   supabaseUrl?: string;
@@ -19,7 +21,7 @@ export function buildContentSecurityPolicy({ isProduction, supabaseUrl }: Header
     "img-src": ["'self'", "data:", "blob:", ...(supabase ? [supabase] : [])],
     "font-src": ["'self'"],
     "connect-src": ["'self'", ...(supabase ? [supabase, supabaseWs] : []), ...(isProduction ? [] : ["ws:"])],
-    "frame-src": ["'none'"],
+    "frame-src": [...EMBED_FRAME_ORIGINS],
     "object-src": ["'none'"],
     "base-uri": ["'self'"],
     // The Google sign-in form redirects through Supabase to Google, and browsers apply this to redirects.

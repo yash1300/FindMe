@@ -53,7 +53,7 @@ Native apps, multiple languages, Stripe or other currencies (the architecture al
 
 ## 6. Plans
 
-Prices, limits and entitlements live in the database and are editable by admins. **No prices are decided yet — see [Open decisions](#8-open-decisions).**
+From Phase 5, prices, limits and entitlements will live in the database and be editable by admins. Until then, everything built so far is free for all users, with FindMe branding on every page. **No prices are decided yet — see [Open decisions](#8-open-decisions).**
 
 | | Free | Pro | Business |
 | --- | --- | --- | --- |

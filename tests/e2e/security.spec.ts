@@ -1,4 +1,4 @@
-﻿import { expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import {
   ANON_KEY,
   linkFromEmail,
@@ -149,6 +149,8 @@ test.describe("onboarding", () => {
 
     await page.getByLabel(/I agree to the/).check();
     await page.getByRole("button", { name: "Continue" }).click();
+    await expect(page.getByRole("heading", { name: "Welcome to FindMe" })).toBeVisible();
+    await page.getByRole("button", { name: "Finish later" }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
     await expect(page.getByRole("heading", { name: "Welcome, Google Style" })).toBeVisible();
   });

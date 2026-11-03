@@ -3,8 +3,7 @@
 import { Check, Loader2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Field } from "@/components/forms/field";
-import { USERNAME_MAX_LENGTH } from "../schema";
-import { usernameSchema } from "../schema";
+import { USERNAME_MAX_LENGTH, usernameSchema } from "../schema";
 
 type Availability =
   | { state: "idle" }
@@ -16,15 +15,29 @@ type Availability =
 
 const DEBOUNCE_MS = 350;
 
-export function UsernameField({ defaultValue = "", error, baseUrl }: { defaultValue?: string; error?: string; baseUrl: string }) {
+export function UsernameField({
+  defaultValue = "",
+  error,
+  baseUrl,
+  skipCheckFor,
+}: {
+  defaultValue?: string;
+  error?: string;
+  baseUrl: string;
+  /** The user's current name, which would otherwise be reported as taken. */
+  skipCheckFor?: string;
+}) {
   const [value, setValue] = useState(defaultValue);
   const [availability, setAvailability] = useState<Availability>({ state: "idle" });
+  // The server's error is about what was submitted, so it's hidden once the user edits the field.
+  const [dismissedError, setDismissedError] = useState<string | undefined>();
+  if (!error && dismissedError) setDismissedError(undefined);
 
   const parsed = usernameSchema.safeParse(value);
   const normalized = parsed.success ? parsed.data : null;
 
   useEffect(() => {
-    if (!normalized) return;
+    if (!normalized || normalized === skipCheckFor) return;
     const controller = new AbortController();
 
     const timer = setTimeout(async () => {
@@ -54,7 +67,7 @@ export function UsernameField({ defaultValue = "", error, baseUrl }: { defaultVa
       clearTimeout(timer);
       controller.abort();
     };
-  }, [normalized]);
+  }, [normalized, skipCheckFor]);
 
   const liveError =
     value && !parsed.success
@@ -73,8 +86,9 @@ export function UsernameField({ defaultValue = "", error, baseUrl }: { defaultVa
       onChange={(event) => {
         setValue(event.target.value);
         setAvailability({ state: "idle" });
+        setDismissedError(error);
       }}
-      error={liveError ?? (value === defaultValue ? error : undefined)}
+      error={liveError ?? (error !== dismissedError ? error : undefined)}
       autoComplete="username"
       autoCapitalize="none"
       spellCheck={false}

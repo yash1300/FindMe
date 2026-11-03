@@ -33,9 +33,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex flex-1 flex-col bg-brand-grey lg:flex-row">
       {/* Mobile */}
-      <header className="bg-brand-midnight p-3 text-white lg:hidden">
+      <header className="min-w-0 bg-brand-midnight p-3 text-white lg:hidden">
         <div className="flex items-center justify-between px-1 pb-2">
-          <Logo href="/dashboard" />
+          <Logo href="/dashboard" prefetch={false} />
           <SignOut />
         </div>
         <DashboardNav orientation="horizontal" />
@@ -43,7 +43,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Desktop */}
       <aside className="hidden w-60 shrink-0 flex-col gap-8 bg-brand-midnight p-4 text-white lg:flex">
-        <Logo href="/dashboard" className="px-3 pt-2" />
+        <Logo href="/dashboard" prefetch={false} className="px-3 pt-2" />
         <div className="flex-1">
           <DashboardNav orientation="vertical" />
         </div>
@@ -56,7 +56,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <main className="min-w-0 flex-1 p-4 sm:p-8">
-        <div className="mx-auto max-w-3xl">{children}</div>
+        <div className="mx-auto max-w-6xl">{children}</div>
       </main>
     </div>
   );
