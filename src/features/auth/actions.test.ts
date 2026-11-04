@@ -102,6 +102,14 @@ describe("registerAction", () => {
     expect(existing).toEqual(fresh);
   });
 
+  it("asks for a different email when Supabase rejects the address", async () => {
+    auth.signUp.mockResolvedValue({ data: {}, error: { code: "email_address_invalid", status: 400 } });
+    const result = await actions.registerAction(IDLE_STATE, form(registration));
+    expect(result.status).toBe("error");
+    expect(result.fieldErrors?.email).toMatch(/different one/);
+    expect(result.values?.email).toBe(registration.email);
+  });
+
   it("rejects a taken username before signing up", async () => {
     rpc.mockResolvedValue({ data: false, error: null });
     const result = await actions.registerAction(IDLE_STATE, form(registration));

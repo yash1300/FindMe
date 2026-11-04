@@ -92,6 +92,13 @@ export async function registerAction(_prev: ActionState, formData: FormData): Pr
         values,
       };
     }
+    if (error.code === "email_address_invalid") {
+      return {
+        status: "error",
+        fieldErrors: { email: "We can't send email to this address. Please use a different one." },
+        values,
+      };
+    }
     // Same response as a new signup, so that this form can't reveal who has an account.
     if (error.code === "user_already_exists" || error.code === "email_exists") {
       return { status: "success", code: "check_email", email };
