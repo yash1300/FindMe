@@ -11,27 +11,30 @@ A plain summary of where each phase stands. The detailed checklist is in [PROJEC
 | 1 | Foundation, accounts, sign-in, database security | Done, merged to `main` |
 | 2 | Marketing site, dashboard, links, public pages | Done, merged to `main` |
 | 3 | Visual editor, content blocks, themes, QR codes | Done, merged to `main` |
-| 4 | Analytics and basic admin access | Done locally, waiting on the steps below |
+| 4 | Analytics and basic admin access | Live and tested |
 | 5 | Payments | **Not being built.** FindMe is free for everyone for now |
-| 6 | Multiple pages, custom domains, moderation, data export | Done locally, waiting on the steps below |
+| 6 | Multiple pages, custom domains, moderation, data export | Live. Custom domains and admin suspend actions not tested live |
 | 7 | AI builder, theme marketplace, recommendations | Not started. Each needs a decision on cost and privacy |
 | 8 | Security audit, performance and accessibility testing, launch | Not started |
 
-**Done locally** means the code is written and tested against a local copy of the database. It isn't on the live site yet.
+## Live site status
 
-## What's blocking the live site
+**The live site is working, but real sign-up emails are still unproven.** Tested on 2026-11-04 with temporary accounts, since removed.
 
-1. **The live site can't reach its database.** At the last check, `/api/health` returned 503 and the sitemap still said `localhost:3000`. Either the Vercel variables aren't saved for Production, or the site hasn't been rebuilt since they were added. Merging will trigger a rebuild.
-2. **The hosted database needs its update.** The Phase 4 and Phase 6 migrations haven't been applied. Applying them to production needs your explicit approval.
+### Still to check by hand
 
-### Steps, in this order
+1. Sign up with a different real email address, and open the confirmation link. Supabase's built-in email sender may only deliver to the project's own team members, which would block the public from signing up.
+2. Finish a real Google sign-in. The button now reaches Google's sign-in page.
+3. After 22:00 UTC, check Vercel's Logs tab to see that the cleanup job ran.
 
-1. Run `npx supabase db push --remote` yourself and confirm when prompted, or tell me to run it.
-2. In Vercel, check that all the variables are set for **Production**, including `NEXT_PUBLIC_APP_URL=https://findme-dun.vercel.app`.
-3. Merge the `phase-6` branch into `main`, which rebuilds the site: <https://github.com/yash1300/FindMe/pull/new/phase-6>
-4. Tell me, and I'll re-test the live site and re-run the security audit on the new tables.
+### Fixes on the `phase-6-fixes` branch, not live until merged
 
-The order matters: the new dashboard reads the new tables, so merging before step 1 would break it.
+- **Speed:** the site's server ran in the US (`iad1`) and the database is in Tokyo, so `vercel.json` now moves the server to Tokyo (`hnd1`). The health check took about a second from India before this change. The improvement hasn't been measured yet.
+- **Sign-up message:** an address Supabase rejects now asks for a different email, instead of showing "We can't process that right now".
+
+### Unexplained
+
+Connections to the site occasionally dropped during testing (`ECONNRESET`, `ERR_CONNECTION_RESET`), and some requests took over 30 seconds. A separate test of 75 requests, 25 each to the live site's health check, a static file and Supabase, had no failures. The cause is unknown, and it could be the test machine's network.
 
 ## Phase details
 
@@ -84,7 +87,9 @@ Run against a local copy of the database, in smaller groups because of limited m
 
 All 81 browser tests have passed, but not in one single run, and the analytics group wasn't re-run after the Phase 6 changes. Please run the full suite once on a machine with more free memory.
 
-**Security audit of the live database:** 58 of 58 attacks blocked, on the Phase 1 to 3 tables. It needs re-running after the migrations, to cover the new tables.
+**Live site walkthrough (2026-11-04):** 31 checks covering pages, onboarding, the page builder, analytics, leads, multiple pages, domain setup, reports, admin screens, data export and account deletion. All passed, though not in one run: account deletion passed in the previous run and was left out of the last one, and the admin screens passed in a separate run. The walkthrough left one permanent `account.deleted` audit entry, which shows only an ID.
+
+**Security audit of the live database:** 83 of 83 checks passed on 2026-11-04, including the Phase 4 and Phase 6 tables. Temporary test accounts were removed afterwards. This tested the database directly, not the live website.
 
 ## Before a public launch
 
@@ -93,6 +98,7 @@ All 81 browser tests have passed, but not in one single run, and the analytics g
 - Removing location data from uploaded photos
 - Error monitoring, and performance and accessibility testing (Phase 8)
 - Resend setup, if you want notification emails
-- Testing Google sign-in on the live site
+- Custom email sending for sign-ups, if Supabase's built-in sender blocks outside addresses or its low hourly limit gets in the way
+- Testing a custom domain with real DNS and HTTPS
 
 Known gaps are listed in [SECURITY.md](SECURITY.md).

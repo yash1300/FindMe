@@ -72,7 +72,7 @@ Local email goes to the Mailpit inbox at http://127.0.0.1:54324. Nothing is real
 1. Import the GitHub repository. The framework is detected as Next.js.
 2. Add the variables above for Production and Preview, pointing Preview at the staging Supabase project.
 3. Attach the domain, then update `NEXT_PUBLIC_APP_URL` and the Supabase URL settings to match.
-4. Consider Mumbai (`bom1`) as the function region, close to the database.
+4. `vercel.json` sets the function region to Tokyo (`hnd1`), because the hosted database is in Tokyo (`ap-northeast-1`). Keep the two close together: each server request can make several database queries. If the database moves, change the region to match, for example Mumbai (`bom1`) with `ap-south-1`.
 
 ## Making someone an admin
 
