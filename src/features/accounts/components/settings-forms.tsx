@@ -6,7 +6,7 @@ import { FormMessage } from "@/components/forms/form-message";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { IDLE_STATE } from "@/features/auth/action-state";
 import { PASSWORD_MIN_LENGTH } from "@/features/auth/schema";
-import { changeEmailAction, changePasswordAction, updateAccountNameAction } from "../actions";
+import { changeEmailAction, changePasswordAction, deleteAccountAction, updateAccountNameAction } from "../actions";
 
 export function NameForm({ name }: { name: string }) {
   const [state, action] = useActionState(updateAccountNameAction, IDLE_STATE);
@@ -71,6 +71,20 @@ export function PasswordForm() {
         required
       />
       <SubmitButton className="justify-self-start">Change password</SubmitButton>
+    </form>
+  );
+}
+
+export function DeleteAccountForm({ hasPassword }: { hasPassword: boolean }) {
+  const [state, action] = useActionState(deleteAccountAction, IDLE_STATE);
+  return (
+    <form action={action} className="grid gap-4" noValidate>
+      <FormMessage status={state.status} message={state.message} />
+      <Field name="confirm" label="Type DELETE to confirm" autoComplete="off" error={state.fieldErrors?.confirm} required />
+      {hasPassword ? (
+        <Field id="delete-password" name="password" label="Your password" type="password" autoComplete="current-password" error={state.fieldErrors?.password} required />
+      ) : null}
+      <SubmitButton variant="destructive" className="justify-self-start">Delete my account</SubmitButton>
     </form>
   );
 }

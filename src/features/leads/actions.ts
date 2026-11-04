@@ -49,10 +49,10 @@ export async function submitLeadAction(_prev: ActionState, formData: FormData): 
   // Reading through the public view means hidden, expired or unpublished forms can't collect anything.
   const { data: block, error: blockError } = await createSupabaseAnonClient()
     .from("public_blocks")
-    .select("id, profile_id, type")
+    .select("id, profile_id, type, config")
     .eq("id", parsed.data.blockId)
     .in("type", ["newsletter", "contact_form"])
-    .maybeSingle<{ id: string; profile_id: string; type: "newsletter" | "contact_form" }>();
+    .maybeSingle<{ id: string; profile_id: string; type: "newsletter" | "contact_form"; config: Record<string, unknown> }>();
 
   if (blockError) {
     logger.error("leads.block_lookup_failed", { code: blockError.code });
@@ -84,6 +84,14 @@ export async function submitLeadAction(_prev: ActionState, formData: FormData): 
     name: parsed.data.name || null,
     message: kind === "contact" ? parsed.data.message : null,
     consent_text: leadConsentText(kind, profile.display_name),
+    // Labels come from the stored form, so a visitor can't invent extra fields.
+    custom_fields: Object.fromEntries(
+      ["1", "2", "3"].flatMap((number) => {
+        const label = block.config[`field${number}`];
+        const value = formData.get(`custom${number}`);
+        return typeof label === "string" && typeof value === "string" && value.trim() ? [[label, value.trim().slice(0, 500)]] : [];
+      }),
+    ),
   });
 
   // A repeat of the same signup is fine, and the reply must not reveal that it was a repeat.

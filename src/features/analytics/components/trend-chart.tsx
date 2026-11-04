@@ -6,8 +6,8 @@ import { formatCount, formatDay, type SeriesPoint } from "../summary";
 const WIDTH = 720;
 const HEIGHT = 240;
 const MARGIN = { top: 12, right: 12, bottom: 28, left: 44 };
-const VIEWS_COLOR = "#7657f6";
-const CLICKS_COLOR = "#0f8f6b";
+const VIEWS_COLOR = "var(--chart-views)";
+const CLICKS_COLOR = "var(--chart-clicks)";
 
 /** Rounds up to a clean axis maximum: 1, 2, 5 or 10 times a power of ten. */
 function niceMax(value: number): number {
@@ -61,13 +61,13 @@ export function TrendChart({ series }: { series: SeriesPoint[] }) {
         >
           {ticks.map((tick) => (
             <g key={tick}>
-              <line x1={MARGIN.left} x2={WIDTH - MARGIN.right} y1={y(tick)} y2={y(tick)} stroke="#e5e7eb" strokeWidth={1} />
-              <text x={MARGIN.left - 8} y={y(tick) + 4} textAnchor="end" fontSize={11} fill="#6b7280">{formatCount(tick)}</text>
+              <line x1={MARGIN.left} x2={WIDTH - MARGIN.right} y1={y(tick)} y2={y(tick)} stroke="var(--border)" strokeWidth={1} />
+              <text x={MARGIN.left - 8} y={y(tick) + 4} textAnchor="end" fontSize={11} fill="var(--muted-foreground)">{formatCount(tick)}</text>
             </g>
           ))}
           {series.map((point, index) =>
             index % labelEvery === 0 ? (
-              <text key={point.day} x={x(index)} y={HEIGHT - 8} textAnchor={series.length === 1 ? "middle" : index === 0 ? "start" : "middle"} fontSize={11} fill="#6b7280">
+              <text key={point.day} x={x(index)} y={HEIGHT - 8} textAnchor={series.length === 1 ? "middle" : index === 0 ? "start" : "middle"} fontSize={11} fill="var(--muted-foreground)">
                 {formatDay(point.day)}
               </text>
             ) : null,
@@ -77,15 +77,15 @@ export function TrendChart({ series }: { series: SeriesPoint[] }) {
           {series.length > 1 ? <path d={line("clicks")} fill="none" stroke={CLICKS_COLOR} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" /> : null}
           {series.length === 1 ? (
             <>
-              <circle cx={x(0)} cy={y(series[0].views)} r={5} fill={VIEWS_COLOR} stroke="#fff" strokeWidth={2} />
-              <circle cx={x(0)} cy={y(series[0].clicks)} r={5} fill={CLICKS_COLOR} stroke="#fff" strokeWidth={2} />
+              <circle cx={x(0)} cy={y(series[0].views)} r={5} fill={VIEWS_COLOR} stroke="var(--card)" strokeWidth={2} />
+              <circle cx={x(0)} cy={y(series[0].clicks)} r={5} fill={CLICKS_COLOR} stroke="var(--card)" strokeWidth={2} />
             </>
           ) : null}
           {active !== null && activePoint ? (
             <>
-              <line x1={x(active)} x2={x(active)} y1={MARGIN.top} y2={y(0)} stroke="#9ca3af" strokeWidth={1} />
-              <circle cx={x(active)} cy={y(activePoint.views)} r={4} fill={VIEWS_COLOR} stroke="#fff" strokeWidth={2} />
-              <circle cx={x(active)} cy={y(activePoint.clicks)} r={4} fill={CLICKS_COLOR} stroke="#fff" strokeWidth={2} />
+              <line x1={x(active)} x2={x(active)} y1={MARGIN.top} y2={y(0)} stroke="var(--muted-foreground)" strokeWidth={1} />
+              <circle cx={x(active)} cy={y(activePoint.views)} r={4} fill={VIEWS_COLOR} stroke="var(--card)" strokeWidth={2} />
+              <circle cx={x(active)} cy={y(activePoint.clicks)} r={4} fill={CLICKS_COLOR} stroke="var(--card)" strokeWidth={2} />
             </>
           ) : null}
         </svg>

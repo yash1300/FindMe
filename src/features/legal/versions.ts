@@ -3,7 +3,7 @@
  * visit. Versions are stored on accounts as the consent record, so don't reuse a value.
  */
 export const TERMS_VERSION = "2026-11-03-draft";
-export const PRIVACY_VERSION = "2026-11-05-draft";
+export const PRIVACY_VERSION = "2026-11-06-draft";
 
 export function hasCurrentConsent(account: {
   terms_accepted_version: string | null;

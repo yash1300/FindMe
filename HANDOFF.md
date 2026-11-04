@@ -2,22 +2,21 @@
 
 Read this first, then [CLAUDE.md](CLAUDE.md) (the spec) and [PROJECT_PLAN.md](PROJECT_PLAN.md) (the checklist).
 
-**Last updated:** 2026-11-04. **Current position:** Phases 1–3 are merged to `main`. Phase 4 is on the `phase-4` branch, written but with its browser tests not yet run. Phase 5 isn't being built, because FindMe is free.
+**Last updated:** 2026-11-04. **Current position:** Phases 1–3 are merged to `main`. Phases 4 and 6 are verified locally on the `phase-6` branch, which includes `phase-4`. Phase 5 isn't being built, because FindMe is free. See [report.md](report.md), and keep it updated after each phase, as the user asked.
 
 ## State of the project
 
-- **Code:** on GitHub at <https://github.com/yash1300/FindMe>. Phases 1–3 are on `main`; Phase 4 is on `phase-4`, and must not be merged before its steps below.
-- **Live site:** <https://findme-dun.vercel.app>. As of the last check, **its environment variables weren't set in Vercel**, so it can't reach the database: `/api/health` returned 503, and the sitemap used `localhost:3000`. Routing, 404s and security headers do work.
-- **Hosted Supabase:** project `bzlelfxdazucsoofngce`, with the Phase 1–3 migrations applied and audited (see SECURITY.md). **The analytics migration isn't applied yet.**
-- **Written but never run:** Google sign-in on the live site, and Resend email.
+- **Code:** on GitHub at <https://github.com/yash1300/FindMe>. `phase-6` must not be merged before step 1 below.
+- **Live site:** <https://findme-dun.vercel.app>. At the last check it couldn't reach the database: `/api/health` returned 503 and the sitemap used `localhost:3000`, even after the user updated Vercel. It hasn't been rebuilt with the values, or they aren't set for Production. Routing, 404s and headers work, and no secrets were found in the 13 client code files checked.
+- **Hosted Supabase:** project `bzlelfxdazucsoofngce`, with migrations through `20261104000000` applied and audited. **`20261105000000_analytics` and `20261106000000_business` aren't applied.** The agent's attempt was blocked by the permission system as a production deploy, so it needs the user's explicit approval, or the user can run it.
+- **Written but never run:** Google sign-in on the live site, Resend email, the Vercel domains API, and the maintenance job's cleanup.
 
-## To finish Phase 4, in this order
+## To go live, in this order
 
-1. Free up memory first. Free RAM reached 0 of 7.8 GB here, and that crashed earlier test runs.
-2. Run the browser tests against the local stack: `tests/e2e/analytics.spec.ts`, then the whole suite. Start Supabase with fewer services: `npx supabase start -x studio,edge-runtime,logflare,vector,realtime,imgproxy,postgres-meta,supavisor`.
-3. Look at the analytics page and the phone previews on screen, since neither has been checked visually yet.
-4. With the user's go-ahead, apply the migration with `npx supabase db push --remote`, **before** merging. The dashboard reads the new table, so the deployed app would break without it.
-5. Merge `phase-4`, then re-run the hosted audit and check the live site.
+1. `npx supabase db push --remote`, by the user or with their explicit approval.
+2. The user checks the Vercel variables are set for Production.
+3. Merge `phase-6`, which triggers a rebuild.
+4. Re-test the live site, and re-run the hosted audit on the new tables. The scripts were session-only, so recreate them from SECURITY.md's description: temporary users made through the admin API, attacks with real sessions, cleanup, then read-only catalogue queries with `supabase db query --remote --read-only`.
 
 ## Running it
 
@@ -51,7 +50,8 @@ npm run build && npm run test:e2e     # needs the local Supabase stack, and port
 6. **Watch server logs during E2E.** Tests can pass while the server logs errors.
 7. **Windows leaves `next start` running after Playwright exits.** `reuseExistingServer` is false for this reason, so a stale server fails loudly with "already used" instead of serving an old build. Stop the process on port 3000, checking first that it's this project's.
 8. **Don't edit source files with PowerShell's `Get-Content`/`Set-Content`.** They read UTF-8 as Windows-1252 and add byte order marks, which has already corrupted files here. In JavaScript's `String.replace`, `$$` in a replacement string becomes `$`, which corrupted a migration.
-9. **`networkidle` doesn't work in these tests.** Prefetches can stay open. Wait for something specific.
+9. **Client navigation keeps the previous page mounted but hidden,** so test selectors can match it. Filter with `{ visible: true }`.
+10. **`networkidle` doesn't work in these tests.** Prefetches can stay open. Wait for something specific.
 10. **Don't choose a file in tests straight after loading a page.** The change is ignored until React hydrates.
 11. **`NEXT_PUBLIC_*` values are fixed at build time.** Rebuild after changing them, including before E2E runs. Image hosts in `next.config.ts` are too.
 12. **Use `127.0.0.1`, not `localhost`,** so the origin matches `NEXT_PUBLIC_APP_URL` and cookies line up.
@@ -67,7 +67,10 @@ The user may want to revisit these:
 - "Keep the test cases" for payments was read as: don't build payments, and keep the checks as to-do tests. Please correct this if something else was meant.
 - Phase 4 adds a creator switch to turn analytics off, and respects Global Privacy Control and Do Not Track.
 - A creator's own visits to their public page count as views.
-- Basic `/admin` figures, with no actions yet, and admins are granted through SQL.
+- Admins are granted through SQL, with no screen for it.
+- Every Phase 6 feature is available to all users, with a limit of 5 pages per account, changeable in admin settings.
+- Accounts never confirmed after 30 days are deleted by the daily job.
+- A softer palette replaced the suggested Midnight primary with a deep violet, as the user invited palette changes.
 - Commits and branch layout: Phase 1 as the first commit on `main`, later phases on branches.
 - Merged `links` and `content_blocks` into `blocks`. Theme presets stay in code until Phase 6.
 - Basic lead storage and the Audience page moved up from Phase 6, because forms have to save somewhere to be real.
@@ -80,6 +83,6 @@ The user may want to revisit these:
 
 See PRD.md section 8. Whether `findme.com` is obtainable and a trademark check on the name are the most pressing.
 
-## After Phase 4: Phase 6
+## Next: Phase 7 or 8
 
-Multiple profiles, custom domains, full admin and moderation, and account data export and self-service deletion, which must ship before public launch. Known gaps are listed in SECURITY.md, and unchecked or partial items in PROJECT_PLAN.md.
+Phase 7's items each need the user's decision on cost and privacy. Phase 8 is the audit, performance and accessibility work, and launch. Known gaps are listed in SECURITY.md, and unchecked or partial items in PROJECT_PLAN.md.

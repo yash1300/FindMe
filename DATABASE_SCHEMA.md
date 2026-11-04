@@ -47,7 +47,7 @@ One row per `auth.users` row, created by trigger. Replaces the spec's `users`.
 **RLS:** owners have full access to their own rows, except that:
 
 - `guard_profile_status` stops anyone but the service role from setting or clearing `suspended`.
-- `enforce_profile_limit` allows one profile per account until entitlements arrive in Phase 5.
+- `enforce_profile_limit` applies the limit from `platform_settings`.
 
 Other users and anonymous visitors **cannot read this table**. They use `public_profiles`, which leaves out `owner_id`.
 
@@ -151,6 +151,28 @@ One random salt a day, with older ones destroyed. Each visitor hash combines thi
 
 `analytics_enabled`: a creator's switch to stop counting visits.
 
+Migration: [`supabase/migrations/20261106000000_business.sql`](supabase/migrations/20261106000000_business.sql). **Not yet applied to the hosted project.**
+
+### `platform_settings`
+
+`max_profiles_per_account` and `announcement`. Signed-in users can read them. Only `admin_update_setting` changes them.
+
+### `custom_domains`
+
+`hostname` (unique), `verification_token`, `status` (`pending`, `failed`, `verified`, `active`), `last_error`. Owners can add, read and remove their own. **Only the server can change status**, so nobody can mark their own domain verified.
+
+### `reports`
+
+Public reports of a page or link, with a snapshot of the username so they outlive the page. Written and read by the server only.
+
+### `moderation_actions`
+
+Permanent record of what staff did and why. Not foreign keys, for the same reason as `audit_logs`, and the service role can only read and insert.
+
+### New `leads` column
+
+`custom_fields`: answers to a form's extra questions. Labels come from the stored form, so visitors can't add fields of their own.
+
 ## Username rules
 
 3–30 characters; lowercase letters, digits, `_` and `-`; must start and end with a letter or digit; no consecutive separators; not in `reserved_usernames`; not released by someone else in the last 30 days. Enforced in the shared Zod schema and again in the database by a `CHECK` constraint and the `validate_profile_username` trigger. Input is lowercased on write, which is what makes uniqueness case-insensitive.
@@ -170,6 +192,8 @@ One random salt a day, with older ones destroyed. Each visitor hash combines thi
 | `record_analytics_event(...)` | service role | Records an event if the page is live and analytics is on. Ignores duplicates: a view within 30 minutes, a click within a minute |
 | `purge_expired_analytics()` | service role | Deletes raw events past 30 days, in batches. Runs on about 1% of events, so no scheduler is needed |
 | `admin_overview()` | service role | Platform figures. The server checks the caller's admin role first |
+| `resolve_custom_domain(text)` | anon, authenticated, service role | Username for an active domain on a live page, or nothing |
+| `admin_set_account_status`, `admin_set_profile_suspended`, `admin_hide_block`, `admin_close_report`, `admin_update_setting` | service role | Check the actor's role, then make the change and write the log entries in one transaction. Settings are admin-only |
 | `check_rate_limit(text, int, int)` | service role | Atomic fixed-window counter. Returns `allowed` and `retry_after_seconds` |
 
 All `SECURITY DEFINER` functions set an empty `search_path` and use fully qualified names, and default `PUBLIC` execute rights are revoked.
@@ -179,9 +203,6 @@ All `SECURITY DEFINER` functions set an empty `search_path` and use fully qualif
 | Table | Phase | Purpose | Replaces in the spec |
 | --- | --- | --- | --- |
 | `theme_presets` 🗓️ | 6 | Admin-editable theme documents. Presets are in code (`src/features/themes/presets.ts`) until something needs to edit them | `profile_themes` |
-| `custom_domains` 🗓️ | 6 | Hostname (unique), verification token, status | |
-| `reports` 🗓️ | 6 | Abuse reports for profiles and links | |
-| `moderation_actions` 🗓️ | 6 | Decisions and reasons | |
 | `notifications` 🗓️ | 6 | In-app messages, only if a feature needs them | |
 
 **Spec entities intentionally merged:** `profile_settings` becomes columns and `theme` on `profiles`; the rest are shown in the table above.

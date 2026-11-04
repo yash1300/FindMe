@@ -15,9 +15,9 @@ type Status = "draft" | "published" | "unpublished" | "suspended";
 
 const STATUS_COPY: Record<Status, { label: string; text: string; className: string }> = {
   draft: { label: "Draft", text: "Only you can see this page.", className: "bg-muted text-foreground" },
-  published: { label: "Published", text: "Your page is live for everyone.", className: "bg-emerald-100 text-emerald-950" },
-  unpublished: { label: "Unpublished", text: "Your page is hidden. Your content is kept safe.", className: "bg-amber-100 text-amber-950" },
-  suspended: { label: "Suspended", text: "This page has been suspended by FindMe.", className: "bg-red-100 text-red-950" },
+  published: { label: "Published", text: "Your page is live for everyone.", className: "bg-emerald-100 dark:bg-emerald-950 text-emerald-950 dark:text-emerald-100" },
+  unpublished: { label: "Unpublished", text: "Your page is hidden. Your content is kept safe.", className: "bg-amber-100 dark:bg-amber-950 text-amber-950 dark:text-amber-100" },
+  suspended: { label: "Suspended", text: "This page has been suspended by FindMe.", className: "bg-red-100 dark:bg-red-950 text-red-950 dark:text-red-100" },
 };
 
 export function PublishControls({ initialStatus, username, baseUrl }: { initialStatus: Status; username: string; baseUrl: string }) {
@@ -83,7 +83,7 @@ export function UsernameForm({ username, baseUrl }: { username: string; baseUrl:
   return (
     <form action={submit} className="grid gap-3">
       <UsernameField key={current} baseUrl={baseUrl} defaultValue={current} error={error} skipCheckFor={current} />
-      {saved ? <p role="status" className="text-sm text-emerald-800">Username updated. Your new link is {baseUrl.replace(/^https?:\/\//, "")}/{current}.</p> : null}
+      {saved ? <p role="status" className="text-sm text-emerald-800 dark:text-emerald-300">Username updated. Your new link is {baseUrl.replace(/^https?:\/\//, "")}/{current}.</p> : null}
       <p className="text-xs text-muted-foreground">
         Your old link stops working straight away. Your old name is held for you for 30 days, and you can change your username once a day.
       </p>
@@ -179,7 +179,7 @@ export function ProfileDetailsForm({ initial }: DetailsProps) {
         </span>
       </label>
       {message ? (
-        <p role={message.type === "ok" ? "status" : "alert"} className={`text-sm ${message.type === "ok" ? "text-emerald-800" : "text-destructive"}`}>
+        <p role={message.type === "ok" ? "status" : "alert"} className={`text-sm ${message.type === "ok" ? "text-emerald-800 dark:text-emerald-300" : "text-destructive"}`}>
           {message.text}
           {message.type === "conflict" ? (
             <>

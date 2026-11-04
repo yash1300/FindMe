@@ -76,7 +76,7 @@ export default async function AnalyticsPage({
       </div>
 
       {!profile.analytics_enabled ? (
-        <p role="status" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-950">
+        <p role="status" className="rounded-lg bg-amber-50 dark:bg-amber-950/60 p-3 text-sm text-amber-950 dark:text-amber-100">
           Analytics is turned off for your page, so new visits aren&apos;t being counted. You can turn it back on in{" "}
           <Link href="/dashboard/my-page" prefetch={false} className="underline">My Page</Link>.
         </p>
@@ -102,7 +102,7 @@ export default async function AnalyticsPage({
             </CardHeader>
             <CardContent>
               <BarList
-                barColor="#0f8f6b"
+                barColor="var(--chart-clicks)"
                 emptyText="No clicks in this period."
                 rows={summary.blockClicks.slice(0, 10).map((item) => ({ label: blockName(item.blockId), value: item.clicks }))}
               />

@@ -17,6 +17,8 @@
 | `RESEND_API_KEY` | **Secret** | Recommended | Notification emails. Without it, messages are still saved |
 | `EMAIL_FROM` | Server | With Resend | Sender, on a domain verified in Resend |
 | `CONTACT_INBOX_EMAIL` | Server | Optional | Where marketing Contact page messages are sent |
+| `CRON_SECRET` | **Secret** | Recommended | Lets Vercel run the daily maintenance job. Without it the job refuses to run. Any long random string |
+| `VERCEL_API_TOKEN`, `VERCEL_PROJECT_ID` | **Secret** | For custom domains | Attaches verified domains to the project. Add `VERCEL_TEAM_ID` if the project is under a team |
 
 ## Local development
 

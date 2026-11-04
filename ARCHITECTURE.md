@@ -44,13 +44,13 @@ src/
     auth/callback/        OAuth and email-link exchange
     onboarding/           post-signup wizard
     dashboard/            creator dashboard (protected)
-    admin/                admin panel, Phase 6 (role-protected)
+    admin/                admin panel (role-protected, each page checks for itself)
     [username]/           public profile, Phase 2
     api/                  route handlers
   components/
     ui/                   shadcn/ui primitives
   features/               one folder per domain, each owning its actions/services/components
-    auth/  usernames/  accounts/  legal/  (later: links, blocks, themes, analytics, billing, admin)
+    auth/  usernames/  accounts/  legal/  blocks/  themes/  analytics/  domains/  reports/  admin/  ...
   lib/
     supabase/             server, proxy and admin clients (a browser client arrives when a feature needs one)
     env.ts                validated configuration
@@ -110,6 +110,14 @@ Previews never send events, so they can't count as traffic. A creator's own visi
 ### Payments
 
 Not built: FindMe is free for everyone. See PROJECT_PLAN.md.
+
+### Custom domains
+
+The proxy now sees every request, but returns immediately for anything that isn't a session route or a custom domain, so public pages still have no auth round trip. For a custom domain it looks up the mapping, with a 60-second in-memory cache, and rewrites `/` to the page. Sign-in stays on the main site, so session cookies never reach a creator's domain.
+
+### Colour modes
+
+A small script sets a `dark` class before first paint, from the saved choice or the device setting. Tokens live in `globals.css`, and `tests/unit/palette.test.ts` checks their contrast. Public pages use their own theme variables, so they look the same in either mode.
 
 ## 5. Theming
 

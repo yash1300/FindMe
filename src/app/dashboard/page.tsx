@@ -104,7 +104,7 @@ export default async function DashboardPage() {
                 <CardTitle>Top links</CardTitle>
               </CardHeader>
               <CardContent>
-                <BarList barColor="#0f8f6b" emptyText="No clicks yet." rows={summary.blockClicks.slice(0, 5).map((item) => ({ label: titleOf(item.blockId), value: item.clicks }))} />
+                <BarList barColor="var(--chart-clicks)" emptyText="No clicks yet." rows={summary.blockClicks.slice(0, 5).map((item) => ({ label: titleOf(item.blockId), value: item.clicks }))} />
               </CardContent>
             </Card>
           </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Logo } from "@/components/brand/logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
@@ -8,7 +9,10 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="grid flex-1 lg:grid-cols-2">
       <main className="flex flex-col p-6 sm:p-10">
-        <Logo />
+        <div className="flex items-center justify-between">
+          <Logo />
+          <ThemeToggle />
+        </div>
         <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">{children}</div>
       </main>
       <aside

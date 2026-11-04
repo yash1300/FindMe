@@ -244,7 +244,13 @@ export function BlockView({ block, context }: { block: RenderableBlock; context:
         <div className="fm-card">
           <div className="fm-card-body">
             <h2 className="fm-card-title">{block.config.heading}</h2>
-            <ContactForm blockId={block.id} ownerName={context.ownerName} buttonLabel={block.config.buttonLabel} preview={context.preview} />
+            <ContactForm
+              blockId={block.id}
+              ownerName={context.ownerName}
+              buttonLabel={block.config.buttonLabel}
+              preview={context.preview}
+              extraFields={[block.config.field1, block.config.field2, block.config.field3]}
+            />
           </div>
         </div>
       );

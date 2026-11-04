@@ -75,8 +75,9 @@ export default function PrivacyPage() {
       <section>
         <h2>Your choices</h2>
         <p>
-          You can change your name, email address, and password in Settings. You can ask for a copy of your data or
-          for your account to be deleted{supportEmail ? " by contacting us" : ""}.
+          You can change your name, email address, and password in Settings. You can also download a copy of your data
+          or permanently delete your account there. If you report a page, we keep your report and any email you give so that we can review it.
+          For anything else, {supportEmail ? "contact us" : "use our Contact page"}.
           {supportEmail ? (
             <>
               {" "}

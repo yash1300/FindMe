@@ -2,7 +2,7 @@
 
 **Your entire world. One link.** A link-in-bio platform for creators, built India-first.
 
-> **Status: in development.** Accounts, the page builder, themes, public pages and QR codes work on a local stack (Phases 1–3). Analytics is written, with browser tests still to run. FindMe is free for everyone, so payments aren't being built. See [PROJECT_PLAN.md](PROJECT_PLAN.md) for exact progress.
+> **Status: in development.** See [report.md](report.md) for a plain summary of each phase, and [PROJECT_PLAN.md](PROJECT_PLAN.md) for the detailed checklist. FindMe is free for everyone, so payments aren't being built.
 
 ## Stack
 
@@ -41,6 +41,7 @@ Use `127.0.0.1` rather than `localhost`, so the address matches `NEXT_PUBLIC_APP
 | --- | --- |
 | [CLAUDE.md](CLAUDE.md) | The full product and development specification |
 | [PRD.md](PRD.md) | Product requirements and open decisions |
+| [report.md](report.md) | Plain summary of each phase, what's blocking the live site, and test results |
 | [PROJECT_PLAN.md](PROJECT_PLAN.md) | Roadmap and progress checklist |
 | [HANDOFF.md](HANDOFF.md) | Current state and next steps for whoever continues the work |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System design and key decisions |

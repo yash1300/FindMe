@@ -12,13 +12,13 @@ import { demoProfile } from "../demo";
  */
 export function DemoPhone({ preset, label }: { preset: PresetId; label: string }) {
   return (
-    <div className="w-full max-w-[20rem] overflow-hidden rounded-[2rem] border-4 border-brand-midnight bg-white shadow-xl">
+    <div className="w-full max-w-[20rem] overflow-hidden rounded-[2.25rem] border-[6px] border-brand-midnight bg-white shadow-xl dark:border-white/15">
       <div
         role="region"
         aria-label={label}
         tabIndex={0}
         data-testid="demo-phone"
-        className="h-[32rem] overflow-y-auto [scrollbar-width:none] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand-violet [&::-webkit-scrollbar]:hidden"
+        className="h-[36rem] overflow-y-auto [scrollbar-width:none] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand-violet [&::-webkit-scrollbar]:hidden"
       >
         <div inert className="flex min-h-full flex-col">
           <ProfileView data={demoProfile(THEME_PRESETS[preset])} preview />
@@ -41,7 +41,7 @@ export function ThemeShowcase() {
             aria-pressed={preset === id}
             onClick={() => setPreset(id)}
             className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none ${
-              preset === id ? "border-brand-midnight bg-brand-midnight text-white" : "bg-background hover:bg-muted"
+              preset === id ? "border-primary bg-primary text-primary-foreground" : "bg-card hover:bg-muted"
             }`}
           >
             {PRESET_LABELS[id]}

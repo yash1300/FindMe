@@ -39,7 +39,9 @@ Status per control: ✅ implemented and tested, including against the local Supa
 - ✅ Public reads go through a view that excludes `owner_id`.
 - ✅ Suspended accounts can't write, even by calling the API directly.
 - ✅ Admin role table writable only by service role.
-- 🔶 `/admin` checks the role on the server and shows others a not-found page. Browser test written but not yet run. The full panel is Phase 6.
+- ✅ Every admin page and action checks the role on the server, and others see a not-found page. Settings are admin-only.
+- ✅ Admin actions and their audit entries save in one transaction, so nothing can happen unlogged. Staff can't suspend themselves or each other.
+- ✅ Nobody can mark their own domain verified, and domains under the app's or hosting provider's names are refused.
 
 ### Input and output
 
@@ -68,8 +70,8 @@ Status per control: ✅ implemented and tested, including against the local Supa
 - ✅ Versioned consent to Terms and Privacy is recorded with a timestamp.
 - ✅ Analytics stores no IP address or user agent. Visitors are a salted hash that differs per page and rotates daily, and old salts are destroyed. Tested at database level.
 - ✅ Raw events are deleted after 30 days, leaving only daily totals. Tested at database level.
-- 🔶 Bots, previews, Global Privacy Control and Do Not Track are excluded, and creators can turn analytics off. Logic tested; browser tests written but not yet run.
-- 🗓️ Account data export and self-service deletion (Phase 6). **Must ship before public launch.**
+- ✅ Bots, previews, Global Privacy Control and Do Not Track are excluded, and creators can turn analytics off.
+- ✅ Account data export and self-service deletion. Deletion needs the password where there is one.
 - ✅ Form submissions record the exact consent wording and time. Creators can delete them.
 - ✅ No third-party video code loads until a visitor presses play. Spotify and SoundCloud players load with the page, and the Privacy Policy says so.
 - 🗓️ Lawyer review of legal text (Phase 8).
@@ -84,7 +86,7 @@ Run against the live Supabase project, on the schema before the analytics migrat
 - `rls_auto_enable` is executable by clients but harmless. Supabase created it as an event trigger that turns on RLS for new tables, and it can't be called directly.
 - **Not covered by this audit:** the Auth dashboard settings, such as password length and email templates, which aren't readable with these keys. Check them against ENV_SETUP.md.
 
-**Re-run this after applying the analytics migration.**
+**This audit predates the analytics and Phase 6 migrations, which aren't applied to the hosted database yet. Re-run it afterwards.**
 
 ## Known gaps and accepted risks
 
@@ -95,10 +97,12 @@ These are open and will be re-reviewed in the Phase 8 audit.
 3. **Client IP comes from `x-forwarded-for`,** which is only trustworthy behind Vercel. Self-hosting requires reviewing `src/lib/security/client-ip.ts`.
 4. **Uploaded images keep their metadata.** Photos can carry location data in EXIF. The original stays reachable at its public storage URL, even if the optimised copies visitors normally load drop it (not verified). Stripping it on upload needs an image-processing step, due before launch.
 5. **Audit log writes aren't wired up yet.** The append-only table exists, but nothing writes to it, because no admin actions exist so far. Phase 6 must make admin actions and their audit entries atomic.
-6. **Storage isn't cleaned up or capped per user.** Replaced images stay in storage, and uploads are limited by rate rather than total size. Cleanup is planned for Phase 6.
+6. **Storage isn't cleaned up or capped per user.** Replaced images stay in storage, and uploads are limited by rate rather than total size.
 7. **Consent can be self-asserted through direct signup.** Someone calling the Auth API directly can put consent versions in their signup metadata. They are asserting consent for themselves, so this is low risk, but the record shows only what the client sent.
 8. **Malformed URLs return 500.** A single path segment that can't be percent-decoded, like `/%E0%A4%A`, gets a generic 500 from the framework before our code runs. It exposes nothing, and only scanners send these.
-9. **Public page caching can lag a suspension.** A suspended page can remain visible for up to about a minute, because suspension has no admin action to invalidate the cache yet. Phase 6's admin panel must invalidate it.
+9. **Custom domains are unproven with real DNS, the Vercel API and HTTPS,** which all need credentials and a real domain. Server actions on a custom domain, such as a contact form submitted from one, also haven't been tested.
+11. **The first admin must be created with SQL.** This is deliberate, and there's no screen for it. See DEPLOYMENT.md.
+12. **Unconfirmed accounts are deleted after 30 days** by the maintenance job. It only touches accounts that never confirmed and never signed in, but the cleanup itself hasn't been run yet.
 10. **Dev tooling audit findings.** `npm audit` reports moderate findings in the ESLint and shadcn CLI toolchains. These are dev dependencies and don't ship to users. `npm audit --omit=dev` is clean as of 2026-11-03. The automated fixes are major downgrades, so they haven't been applied.
 
 ## Pre-launch checklist

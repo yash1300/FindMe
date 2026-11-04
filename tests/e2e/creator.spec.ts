@@ -658,7 +658,7 @@ test.describe("marketing site", () => {
 
   test("the hero preview switches themes, and Explore examples goes to themes", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: "Dark" }).click();
+    await page.getByRole("button", { name: "Dark", exact: true }).click();
     await expect(page.locator(".fm-page").first()).toHaveCSS("background-color", "rgb(11, 15, 25)");
     await page.getByRole("link", { name: "Explore examples" }).click();
     await expect(page).toHaveURL(/\/themes$/);
@@ -680,10 +680,14 @@ test.describe("marketing site", () => {
         return {
           footerVisible: footer.bottom <= box.bottom + 1,
           centred: Math.abs(page.left - box.left - (box.right - page.right)) <= 1,
+          panelInset: (() => {
+            const panel = el.querySelector(".fm-surface-card, .fm-surface-glass")?.getBoundingClientRect();
+            return !panel || (panel.left - box.left >= 8 && Math.abs(panel.left - box.left - (box.right - panel.right)) <= 1);
+          })(),
           noSideways: el.scrollWidth <= el.clientWidth,
         };
       });
-      expect(fits).toEqual({ footerVisible: true, centred: true, noSideways: true });
+      expect(fits).toEqual({ footerVisible: true, centred: true, panelInset: true, noSideways: true });
     }
   });
 });

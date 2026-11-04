@@ -26,7 +26,7 @@ export function MetricCards({ summary }: { summary: AnalyticsSummary }) {
 export function BarList({
   rows,
   emptyText = "Nothing yet.",
-  barColor = "#7657f6",
+  barColor = "var(--chart-views)",
 }: {
   rows: { label: string; value: number }[];
   emptyText?: string;
