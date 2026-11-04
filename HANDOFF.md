@@ -2,14 +2,22 @@
 
 Read this first, then [CLAUDE.md](CLAUDE.md) (the spec) and [PROJECT_PLAN.md](PROJECT_PLAN.md) (the checklist).
 
-**Last updated:** 2026-11-04. **Current position:** Phases 1–3 are complete on the local stack. Phase 4 (analytics) has not started.
+**Last updated:** 2026-11-04. **Current position:** Phases 1–3 are merged to `main`. Phase 4 is on the `phase-4` branch, written but with its browser tests not yet run. Phase 5 isn't being built, because FindMe is free.
 
 ## State of the project
 
-- **Code:** on GitHub at <https://github.com/yash1300/FindMe>, a private repo. Phase 1 is on `main`; Phases 2–3 are on the `phase-2-3` branch, awaiting review and merge.
-- **Nothing is deployed.** The user is about to add real credentials using [ENV_SETUP.md](ENV_SETUP.md).
-- **Works on the local stack:** everything in Phases 1–3 except the items below.
-- **Written but never run, because they need credentials:** Google sign-in and Resend email.
+- **Code:** on GitHub at <https://github.com/yash1300/FindMe>. Phases 1–3 are on `main`; Phase 4 is on `phase-4`, and must not be merged before its steps below.
+- **Live site:** <https://findme-dun.vercel.app>. As of the last check, **its environment variables weren't set in Vercel**, so it can't reach the database: `/api/health` returned 503, and the sitemap used `localhost:3000`. Routing, 404s and security headers do work.
+- **Hosted Supabase:** project `bzlelfxdazucsoofngce`, with the Phase 1–3 migrations applied and audited (see SECURITY.md). **The analytics migration isn't applied yet.**
+- **Written but never run:** Google sign-in on the live site, and Resend email.
+
+## To finish Phase 4, in this order
+
+1. Free up memory first. Free RAM reached 0 of 7.8 GB here, and that crashed earlier test runs.
+2. Run the browser tests against the local stack: `tests/e2e/analytics.spec.ts`, then the whole suite. Start Supabase with fewer services: `npx supabase start -x studio,edge-runtime,logflare,vector,realtime,imgproxy,postgres-meta,supavisor`.
+3. Look at the analytics page and the phone previews on screen, since neither has been checked visually yet.
+4. With the user's go-ahead, apply the migration with `npx supabase db push --remote`, **before** merging. The dashboard reads the new table, so the deployed app would break without it.
+5. Merge `phase-4`, then re-run the hosted audit and check the live site.
 
 ## Running it
 
@@ -20,7 +28,9 @@ npx supabase start      # the local stack, with images already downloaded on thi
 npm run dev             # http://127.0.0.1:3000; emails appear at http://127.0.0.1:54324
 ```
 
-`.env.local` is gitignored. If the user has switched it to their hosted project, swap the local values back in from `npx supabase status -o env` before running E2E tests. The tests refuse to run against anything else.
+`.env.local` is gitignored, and now holds the **hosted** project's values, with `NEXT_PUBLIC_APP_URL` set to the live site, at the user's request. So local sign-in emails and redirects lead to the live site. For tests, don't edit it: pass local values through the process environment, which take priority over `.env` files. Set `NEXT_PUBLIC_APP_URL=http://127.0.0.1:3000`, plus `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` from `npx supabase status -o env`, for both the build and the tests. The tests refuse to run against anything but a local database.
+
+**The current `.next` build points at the local stack.** `npm run dev` is unaffected, but rebuild before using `npm start`.
 
 ## Verifying
 
@@ -54,10 +64,13 @@ npm run build && npm run test:e2e     # needs the local Supabase stack, and port
 
 The user may want to revisit these:
 
-- Commits and branch layout: Phase 1 as the first commit on `main`, Phases 2–3 on a branch.
+- "Keep the test cases" for payments was read as: don't build payments, and keep the checks as to-do tests. Please correct this if something else was meant.
+- Phase 4 adds a creator switch to turn analytics off, and respects Global Privacy Control and Do Not Track.
+- A creator's own visits to their public page count as views.
+- Basic `/admin` figures, with no actions yet, and admins are granted through SQL.
+- Commits and branch layout: Phase 1 as the first commit on `main`, later phases on branches.
 - Merged `links` and `content_blocks` into `blocks`. Theme presets stay in code until Phase 6.
 - Basic lead storage and the Audience page moved up from Phase 6, because forms have to save somewhere to be real.
-- Everything is free for now, and the Pricing page shows no prices and says paid plans aren't on sale.
 - Renames: one a day, with old names held for 30 days.
 - Limits: 200 blocks per page, 5 MB per image, 40 uploads an hour.
 - `react-icons` for brand icons, `@dnd-kit` for drag and drop, and `qrcode` for QR codes.
@@ -67,6 +80,6 @@ The user may want to revisit these:
 
 See PRD.md section 8. Whether `findme.com` is obtainable and a trademark check on the name are the most pressing.
 
-## Next step: Phase 4
+## After Phase 4: Phase 6
 
-Event collection, click tracking through `/l/{blockId}`, daily aggregates, dashboard charts. Basic admin authorisation is also due here for the MVP's Definition of Done. Known gaps to fix along the way are listed in SECURITY.md, and the unchecked or partial items in PROJECT_PLAN.md.
+Multiple profiles, custom domains, full admin and moderation, and account data export and self-service deletion, which must ship before public launch. Known gaps are listed in SECURITY.md, and unchecked or partial items in PROJECT_PLAN.md.

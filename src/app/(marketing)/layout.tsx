@@ -6,7 +6,6 @@ import { buttonVariants } from "@/components/ui/button";
 const NAV = [
   { href: "/features", label: "Features" },
   { href: "/themes", label: "Themes" },
-  { href: "/pricing", label: "Pricing" },
   { href: "/faq", label: "FAQ" },
 ];
 

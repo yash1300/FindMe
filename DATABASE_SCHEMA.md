@@ -133,6 +133,24 @@ Messages from the marketing Contact page. Written by the server, readable only b
 
 Public read, because page images must load for anyone. 5 MB limit; PNG, JPEG, WebP and GIF only, with no SVG since it can carry scripts. Users can upload and delete only inside a folder named after their user ID. The server also checks each file's real type from its first bytes.
 
+Migration: [`supabase/migrations/20261105000000_analytics.sql`](supabase/migrations/20261105000000_analytics.sql). **Not yet applied to the hosted project.**
+
+### `analytics_events`
+
+Raw events, deleted after 30 days. `event_type`, `visitor_hash`, `dedupe_key` (unique) and broad categories: referrer, device, browser, OS, country. **No IP address or user agent is stored.** Closed to all clients, including the page's owner.
+
+### `analytics_daily`
+
+Totals per `(profile_id, day, dimension, dimension_value)`, kept after raw events are gone. Days follow Indian time. Updated in the same transaction as each event. Owners can read their own, and nobody can write except the server.
+
+### `analytics_salts`
+
+One random salt a day, with older ones destroyed. Each visitor hash combines this salt with the page and the visitor's IP and browser string, so the same person looks different on each page and each day, and past hashes can't be recreated.
+
+### New `profiles` column
+
+`analytics_enabled`: a creator's switch to stop counting visits.
+
 ## Username rules
 
 3–30 characters; lowercase letters, digits, `_` and `-`; must start and end with a letter or digit; no consecutive separators; not in `reserved_usernames`; not released by someone else in the last 30 days. Enforced in the shared Zod schema and again in the database by a `CHECK` constraint and the `validate_profile_username` trigger. Input is lowercased on write, which is what makes uniqueness case-insensitive.
@@ -149,6 +167,9 @@ Public read, because page images must load for anyone. 5 MB limit; PNG, JPEG, We
 | `is_active_account()` | authenticated, service role | Used by write policies, so suspended accounts can't write |
 | `owns_profile(uuid)` | authenticated, service role | True when the caller may change this profile's content |
 | `reorder_blocks(uuid, uuid[])`, `reorder_social_links(uuid, uuid[])` | authenticated | All or nothing. A partial, duplicate or foreign list is rejected |
+| `record_analytics_event(...)` | service role | Records an event if the page is live and analytics is on. Ignores duplicates: a view within 30 minutes, a click within a minute |
+| `purge_expired_analytics()` | service role | Deletes raw events past 30 days, in batches. Runs on about 1% of events, so no scheduler is needed |
+| `admin_overview()` | service role | Platform figures. The server checks the caller's admin role first |
 | `check_rate_limit(text, int, int)` | service role | Atomic fixed-window counter. Returns `allowed` and `retry_after_seconds` |
 
 All `SECURITY DEFINER` functions set an empty `search_path` and use fully qualified names, and default `PUBLIC` execute rights are revoked.
@@ -158,13 +179,6 @@ All `SECURITY DEFINER` functions set an empty `search_path` and use fully qualif
 | Table | Phase | Purpose | Replaces in the spec |
 | --- | --- | --- | --- |
 | `theme_presets` 🗓️ | 6 | Admin-editable theme documents. Presets are in code (`src/features/themes/presets.ts`) until something needs to edit them | `profile_themes` |
-| `analytics_events` 🗓️ | 4 | Raw events with category fields and a daily salted visitor hash. **No raw IP.** Retention job | `profile_views`, `link_clicks` |
-| `analytics_daily` 🗓️ | 4 | Aggregates unique on `(profile_id, block_id, day, dimension)` | |
-| `subscription_plans` 🗓️ | 5 | Prices per currency and interval, limits and entitlements as data | |
-| `subscriptions` 🗓️ | 5 | Provider IDs and status. Written only by webhook handlers | |
-| `payment_events` 🗓️ | 5 | Raw webhook log, unique on `(provider, event_id)` for idempotency | |
-| `invoices` 🗓️ | 5 | Amounts in minor units, tax lines captured at time of sale, refund state | |
-| `tax_rules` 🗓️ | 5 | Configurable rates by jurisdiction and date; no tax logic in code | |
 | `custom_domains` 🗓️ | 6 | Hostname (unique), verification token, status | |
 | `reports` 🗓️ | 6 | Abuse reports for profiles and links | |
 | `moderation_actions` 🗓️ | 6 | Decisions and reasons | |

@@ -7,7 +7,7 @@ export const RESERVED_USERNAMES = [
   // Current and planned application routes
   "about", "account", "accounts", "admin", "api", "app", "auth", "billing", "blog", "callback",
   "contact", "dashboard", "docs", "examples", "faq", "features", "forgot-password", "help",
-  "home", "integrations", "login", "logout", "manifest", "onboarding", "pricing", "privacy",
+  "home", "integrations", "l", "login", "logout", "manifest", "onboarding", "pricing", "privacy",
   "register", "reset-password", "robots", "settings", "signin", "signout", "signup", "sitemap",
   "static", "status", "support", "suspended", "terms", "themes", "verify-email", "www",
   // Brand and trust-sensitive names

@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { refreshSession } from "@/lib/supabase/proxy";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/onboarding"];
+const PROTECTED_PREFIXES = ["/dashboard", "/onboarding", "/admin"];
 const SIGNED_OUT_ONLY = ["/login", "/register", "/forgot-password"];
 
 function matchesPrefix(pathname: string, prefixes: readonly string[]) {
@@ -34,6 +34,7 @@ export const config = {
   matcher: [
     "/dashboard/:path*",
     "/onboarding/:path*",
+    "/admin/:path*",
     "/suspended",
     "/login",
     "/register",

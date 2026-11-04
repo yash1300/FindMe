@@ -65,25 +65,26 @@ A feature is only `[x]` once its implementation and tests have been verified.
 
 ## Phase 4 — Analytics
 
-- [ ] Event collection with bot filtering and duplicate control
-- [ ] Click redirect through stored URLs
-- [ ] Daily aggregates and retention job
-- [ ] Dashboard metrics, charts and date ranges
-- [ ] Privacy notice and controls
+Written and covered by unit and database tests. **Browser tests are written but haven't been run, because the machine ran out of memory, so these stay `[~]` until they pass.**
 
-**MVP Definition of Done** is met at this point, once critical tests and the production build pass and admin authorisation is in place. Basic admin authorisation is delivered with Phase 4 for this reason, ahead of the full panel in Phase 6.
+- [~] Event collection with bot filtering, duplicate control, and Global Privacy Control and Do Not Track
+- [~] Click redirect through stored URLs (`/l/{id}`)
+- [~] Daily totals, updated as events arrive, and 30-day deletion of raw events
+- [~] Dashboard metrics, chart, top links, breakdowns and date ranges
+- [~] Privacy notice, and a creator switch to turn analytics off
+- [~] Basic admin access: `/admin` figures, shown only to users with an admin role
+- [ ] Country breakdown on Vercel: uses Vercel's location header, so it needs checking once deployed
+- [ ] Recent activity list on the overview
 
-## Phase 5 — India monetisation
+**Removed from the plan:** the Pricing page and Billing navigation, because FindMe is free for everyone.
 
-Needs: plan prices, legal entity and GSTIN, Razorpay sandbox keys.
+**MVP Definition of Done** is met once these browser tests pass, the critical suite runs clean, and the live site is verified.
 
-- [ ] `subscription_plans`, `subscriptions`, `payment_events`, `invoices`, `tax_rules`
-- [ ] `PaymentProvider` interface and Razorpay implementation
-- [ ] Checkout, verified idempotent webhooks
-- [ ] Upgrade, downgrade, cancel, renew, failed-payment handling
-- [ ] Refund tracking, invoices, GST-aware documents
-- [ ] Server-side entitlement enforcement
-- [ ] Sandbox verification — required before advertising paid features
+## Phase 5 — Monetisation (not being built)
+
+**Decision (2026-11-04): FindMe is free for everyone for now.** There's no checkout, billing, plans or entitlements, and all features are available to all users. The checks paid plans must pass are kept as to-do tests in `tests/unit/payments.todo.test.ts`.
+
+If this changes, it needs: plan prices, a legal entity and GSTIN, Razorpay test keys, and a decision on what happens to existing users' features.
 
 ## Phase 6 — Business features
 
@@ -120,4 +121,5 @@ Each item needs approval because of cost and privacy impact.
 | Date | Change |
 | --- | --- |
 | 2026-11-03 | Plan created; Phase 1 implemented and verified locally |
+| 2026-11-04 | Phase 4 written, browser tests pending. Pricing removed; Phase 5 not being built, as FindMe is free |
 | 2026-11-04 | Phases 2 and 3 implemented and verified locally. Theme presets stay in code until the Phase 6 admin panel needs to edit them |

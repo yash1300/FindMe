@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 };
 
 const VALUES = [
-  { title: "Your page should look like you", text: "Good design shouldn't be a paid extra. Everyone gets the full set of themes and controls." },
-  { title: "Built for India first", text: "We're starting with what people here need, including rupee pricing and UPI when paid plans arrive, and we'll grow from there." },
+  { title: "Your page should look like you", text: "Good design shouldn't be a paid extra. FindMe is free, and everyone gets the full set of themes and controls." },
+  { title: "Built for India first", text: "We're starting with what people here need, and we'll grow from there." },
   { title: "Privacy by design", text: "We collect what the service needs, and we won't invent numbers or promise more than we can deliver." },
 ];
 

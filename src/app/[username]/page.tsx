@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
+import { ViewBeacon } from "@/features/analytics/components/view-beacon";
 import { publicMediaUrl } from "@/features/media/paths";
 import { ProfileView } from "@/features/profile/components/profile-view";
 import { getPublicProfile } from "@/features/profile/queries";
@@ -70,5 +71,10 @@ export default async function PublicProfilePage({ params }: Props) {
   const profile = await loadProfile(username);
   if (!profile) notFound();
 
-  return <ProfileView data={profile} />;
+  return (
+    <>
+      <ProfileView data={profile} />
+      <ViewBeacon profileId={profile.id} />
+    </>
+  );
 }

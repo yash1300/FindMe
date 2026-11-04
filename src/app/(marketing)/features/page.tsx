@@ -17,12 +17,11 @@ const AVAILABLE = [
   { title: "QR codes and sharing", text: "Download as PNG or SVG in your own colours, with your logo, and share in a tap." },
   { title: "Newsletter and contact forms", text: "Collect signups and messages with recorded consent. Only you can see them, and you can delete them at any time." },
   { title: "Publishing controls", text: "Keep your page a draft until it's ready, unpublish whenever you like, and choose whether search engines may list it." },
+  { title: "Privacy-friendly analytics", text: "Views, clicks, trends and where visitors come from. No IP addresses stored, and you can turn it off." },
   { title: "Fast public pages", text: "Pages are built to load quickly, with video players that load only when someone presses play." },
 ];
 
 const COMING = [
-  { title: "Analytics", text: "Views, clicks and trends, designed around visitors' privacy." },
-  { title: "Paid plans in rupees", text: "With UPI and GST-aware invoices." },
   { title: "Custom domains", text: "Use your own web address." },
   { title: "Multiple profiles", text: "For people and teams with more than one brand." },
 ];
@@ -46,7 +45,7 @@ export default function FeaturesPage() {
 
       <section className="grid gap-4">
         <h2 className="text-2xl font-semibold tracking-tight">Coming later</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           {COMING.map((feature) => (
             <div key={feature.title} className="rounded-xl border border-dashed p-5">
               <h3 className="font-medium">{feature.title}</h3>

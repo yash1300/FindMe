@@ -100,6 +100,7 @@ type DetailsProps = {
     avatarPath: string | null;
     coverPath: string | null;
     isIndexable: boolean;
+    analyticsEnabled: boolean;
     version: number;
   };
 };
@@ -112,6 +113,7 @@ export function ProfileDetailsForm({ initial }: DetailsProps) {
     avatarPath: initial.avatarPath,
     coverPath: initial.coverPath,
     isIndexable: initial.isIndexable,
+    analyticsEnabled: initial.analyticsEnabled,
   });
   const [version, setVersion] = useState(initial.version);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -167,6 +169,13 @@ export function ProfileDetailsForm({ initial }: DetailsProps) {
         <span>
           <span className="font-medium">Allow search engines to list my page</span>
           <span className="block text-xs text-muted-foreground">Turning this off asks them not to, but it doesn&apos;t make the page private.</span>
+        </span>
+      </label>
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" checked={values.analyticsEnabled} onChange={(event) => setValues((v) => ({ ...v, analyticsEnabled: event.target.checked }))} className="mt-0.5 size-4 accent-brand-violet" />
+        <span>
+          <span className="font-medium">Count visits to my page</span>
+          <span className="block text-xs text-muted-foreground">Powers your Analytics page. Turning it off stops new visits being counted, and keeps your past totals.</span>
         </span>
       </label>
       {message ? (

@@ -18,6 +18,7 @@ export const RATE_LIMITS = {
   credentialChangeByUser: { limit: 8, windowSeconds: 900 },
   contentWriteByUser: { limit: 300, windowSeconds: 300 },
   uploadByUser: { limit: 40, windowSeconds: 3600 },
+  analyticsByIp: { limit: 120, windowSeconds: 60 },
   leadByIp: { limit: 20, windowSeconds: 3600 },
   leadByIpAndBlock: { limit: 5, windowSeconds: 3600 },
 } as const satisfies Record<string, RateLimitRule>;

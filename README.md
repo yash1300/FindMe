@@ -2,11 +2,11 @@
 
 **Your entire world. One link.** A link-in-bio platform for creators, built India-first.
 
-> **Status: in development.** Accounts, the page builder, themes, public pages and QR codes work on a local stack (Phases 1–3). Analytics and payments aren't built yet, and nothing is deployed. See [PROJECT_PLAN.md](PROJECT_PLAN.md) for exact progress.
+> **Status: in development.** Accounts, the page builder, themes, public pages and QR codes work on a local stack (Phases 1–3). Analytics is written, with browser tests still to run. FindMe is free for everyone, so payments aren't being built. See [PROJECT_PLAN.md](PROJECT_PLAN.md) for exact progress.
 
 ## Stack
 
-Next.js (App Router), React, TypeScript, Tailwind CSS, shadcn/ui, Supabase (Postgres, Auth, Storage), Zod, Vitest, and Playwright. Resend handles notification email, and Razorpay arrives in Phase 5.
+Next.js (App Router), React, TypeScript, Tailwind CSS, shadcn/ui, Supabase (Postgres, Auth, Storage), Zod, Vitest, and Playwright. Resend handles notification email.
 
 ## Getting started
 

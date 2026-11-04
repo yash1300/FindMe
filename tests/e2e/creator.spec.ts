@@ -195,7 +195,10 @@ test.describe("link manager", () => {
     const visitor = await (await browser.newContext()).newPage();
     await visitor.goto(`/${identity.username}`);
     const publicLink = visitor.getByRole("link", { name: "First link" });
-    await expect(publicLink).toHaveAttribute("href", "https://example.com/first");
+    await expect(publicLink).toHaveAttribute("href", /^\/l\/[0-9a-f-]{36}$/);
+    const redirect = await visitor.request.get((await publicLink.getAttribute("href"))!, { maxRedirects: 0 });
+    expect(redirect.status()).toBe(302);
+    expect(redirect.headers().location).toBe("https://example.com/first");
     await expect(publicLink).toHaveAttribute("rel", /noopener/);
     await expect(publicLink).toHaveAttribute("target", "_blank");
 
@@ -372,7 +375,7 @@ test.describe("content blocks", () => {
     await expect(visitor.getByRole("heading", { name: "<b>Section</b>" })).toBeVisible();
     await expect(visitor.getByText("<script>window.hacked=1</script>Plain words")).toBeVisible();
     expect(await visitor.evaluate(() => "hacked" in window)).toBe(false);
-    await expect(visitor.getByRole("link", { name: /Big card/ })).toHaveAttribute("href", "https://example.com/big");
+    await expect(visitor.getByRole("link", { name: /Big card/ })).toHaveAttribute("href", /^\/l\//);
     await expect(visitor.getByText("₹499")).toBeVisible();
     await expect(visitor.getByText("Big news")).toBeVisible();
     await expect(visitor.getByRole("link", { name: "Email me" })).toHaveAttribute("href", "mailto:me@example.test");
@@ -642,7 +645,6 @@ test.describe("marketing site", () => {
       ["/", "Your entire world."],
       ["/features", "Everything your page needs"],
       ["/themes", "Find your look"],
-      ["/pricing", "Start free"],
       ["/about", "Everything you are, in one link"],
       ["/contact", "Contact us"],
       ["/faq", "Frequently asked questions"],
@@ -662,6 +664,27 @@ test.describe("marketing site", () => {
     await expect(page).toHaveURL(/\/themes$/);
     // The previous route stays mounted but hidden, so only count what's on screen.
     await expect(page.locator(".fm-page").filter({ visible: true })).toHaveCount(10);
+  });
+
+  test("pricing is gone, and phone previews scroll rather than cutting content off", async ({ page, request }) => {
+    expect((await request.get("/pricing")).status()).toBe(404);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/themes");
+    await expect(page.getByRole("link", { name: "Pricing" })).toHaveCount(0);
+    for (const phone of await page.getByTestId("demo-phone").all()) {
+      const fits = await phone.evaluate((el) => {
+        el.scrollTop = el.scrollHeight;
+        const footer = el.querySelector(".fm-footer")!.getBoundingClientRect();
+        const box = el.getBoundingClientRect();
+        const page = el.querySelector(".fm-page")!.getBoundingClientRect();
+        return {
+          footerVisible: footer.bottom <= box.bottom + 1,
+          centred: Math.abs(page.left - box.left - (box.right - page.right)) <= 1,
+          noSideways: el.scrollWidth <= el.clientWidth,
+        };
+      });
+      expect(fits).toEqual({ footerVisible: true, centred: true, noSideways: true });
+    }
   });
 });
 

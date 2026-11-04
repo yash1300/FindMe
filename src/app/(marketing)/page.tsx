@@ -116,11 +116,10 @@ export default function HomePage() {
             <li className="flex items-center gap-2"><Share2 className="size-4 text-muted-foreground" aria-hidden /> Sharing to WhatsApp, Facebook, X, LinkedIn and email</li>
           </ul>
         </div>
-        <div className="grid content-start gap-4 rounded-2xl border border-dashed p-6">
-          <BarChart3 className="size-6 text-muted-foreground" aria-hidden />
-          <p className="justify-self-start rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium">Coming soon</p>
+        <div className="grid content-start gap-4 rounded-2xl border p-6">
+          <BarChart3 className="size-6 text-brand-violet" aria-hidden />
           <h2 className="text-2xl font-semibold tracking-tight">Analytics that respect people</h2>
-          <p className="text-muted-foreground">We&apos;re building views, clicks and trends for your page, designed from the start around visitors&apos; privacy.</p>
+          <p className="text-muted-foreground">See your views, clicks and trends, where visitors come from, and which links work best. We don&apos;t store IP addresses or follow visitors around.</p>
         </div>
       </section>
 
@@ -136,11 +135,6 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-      </section>
-
-      <section className="mx-auto grid w-full max-w-6xl gap-4 px-4 py-16 sm:px-6">
-        <SectionHeading title="Pricing" text="FindMe is free to start. Paid plans with extra features are planned, and we'll announce prices in rupees before they launch." />
-        <Link href="/pricing" className={cn(buttonVariants({ variant: "outline" }), "justify-self-start")}>See what&apos;s included</Link>
       </section>
 
       <section className="bg-brand-grey">

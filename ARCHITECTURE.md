@@ -30,7 +30,6 @@
 | Links and blocks | One `blocks` table with a `type` and a validated JSON `config` | Reordering, visibility and scheduling behave the same for every block; avoids two parallel tables |
 | Output safety | Values are re-validated at render, including URLs. No `dangerouslySetInnerHTML` for user content | Defence in depth against rows written before a rule tightened |
 | Rate limiting | Postgres-backed fixed window | No new vendor or cost; can move to Redis behind the same interface if load requires it |
-| Payments | `PaymentProvider` interface, Razorpay first | Stripe can follow without touching business logic |
 | Domains | Canonical origin from env, never a literal | Dev, staging and custom domains all work the same way |
 | Analytics identity | Salted, daily-rotating hash of IP + user agent; raw IP is never stored | Gives estimated uniques without a persistent identifier |
 | Profile page tracking | Client beacon after render, not in the page handler | Lets pages be cached while still counting views |
@@ -102,13 +101,15 @@ Google sign-ups carry no username or consent, so onboarding collects both. A use
 
 Blocks and social links update optimistically and roll back if the server refuses. The appearance editor keeps an undo history in the browser and autosaves after a short pause. Saves run one at a time, each carrying the version from the last, so a change made elsewhere is reported as a conflict instead of being overwritten.
 
-### Link click (Phase 4)
+### Analytics
 
-`/l/{blockId}` looks up the block server-side and redirects only to the stored URL after re-validating its scheme. No URL ever comes from the request, so an open redirect is structurally impossible.
+Public pages stay cached, and a small client component reports each view to `/api/events` after loading. Clicks go through `/l/{blockId}`, which looks up the block server-side and redirects only to the stored URL after re-validating it. No URL ever comes from the request, so an open redirect is structurally impossible. Both record after responding, using `after()`, so analytics never slows a visitor down or breaks a link.
 
-### Payments (Phase 5)
+Previews never send events, so they can't count as traffic. A creator's own visits to their public page do count, because telling them apart would need a session lookup on every view.
 
-Checkout starts on the server. The frontend success callback only updates the UI. **Access changes only from a signature-verified webhook**, processed idempotently using the unique provider event ID in `payment_events`.
+### Payments
+
+Not built: FindMe is free for everyone. See PROJECT_PLAN.md.
 
 ## 5. Theming
 

@@ -66,7 +66,7 @@ Supabase holds your database, logins and uploaded images. The free plan is enoug
    ```bash
    npx supabase login
    npx supabase link --project-ref YOUR_PROJECT_REF
-   npx supabase db push
+   npx supabase db push --remote
    ```
 
    `YOUR_PROJECT_REF` is the `xxxx` part of your Project URL. `link` asks for the database password from step 2.
@@ -155,7 +155,7 @@ CONTACT_INBOX_EMAIL=
 ## Check that it worked
 
 1. Run `npm run dev`, and open <http://127.0.0.1:3000/api/health>. You should see `{"status":"ok","database":"ok"}`.
-   - **`degraded`:** check the three Supabase values, and that `npx supabase db push` succeeded.
+   - **`degraded`:** check the three Supabase values, and that `npx supabase db push --remote` succeeded.
 2. Open <http://127.0.0.1:3000/register> and create an account using a real email address.
 3. Follow the link in the email. You should arrive at the setup wizard.
    - **No email:** check your spam folder, then the Supabase rate limit.
@@ -170,5 +170,4 @@ These aren't needed yet:
 
 | Needed for | What |
 | --- | --- |
-| Going live | A Vercel account, with these same values added under **Project → Settings → Environment Variables**. See [DEPLOYMENT.md](DEPLOYMENT.md) |
-| Phase 5, payments | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` and `RAZORPAY_WEBHOOK_SECRET` from Razorpay test mode, plus your plan prices and GSTIN |
+| Going live | **Add these same values in Vercel, under Project → Settings → Environment Variables, then redeploy.** `.env.local` is only on your computer, so Vercel can't see it. Set `NEXT_PUBLIC_APP_URL` there to your live address. See [DEPLOYMENT.md](DEPLOYMENT.md) |

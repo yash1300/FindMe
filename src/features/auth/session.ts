@@ -28,6 +28,7 @@ export type Profile = {
   theme: unknown;
   version: number;
   is_indexable: boolean;
+  analytics_enabled: boolean;
   onboarding_completed_at: string | null;
   username_changed_at: string | null;
 };
@@ -61,7 +62,7 @@ export const getAccountContext = cache(async (userId: string) => {
     supabase
       .from("profiles")
       .select(
-        "id, username, display_name, status, bio, avatar_path, cover_path, category, theme, version, is_indexable, onboarding_completed_at, username_changed_at",
+        "id, username, display_name, status, bio, avatar_path, cover_path, category, theme, version, is_indexable, analytics_enabled, onboarding_completed_at, username_changed_at",
       )
       .eq("owner_id", userId)
       .order("created_at")

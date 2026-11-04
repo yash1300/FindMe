@@ -6,16 +6,24 @@ import { PRESET_LABELS, THEME_PRESETS } from "@/features/themes/presets";
 import { PRESET_IDS, type PresetId } from "@/features/themes/schema";
 import { demoProfile } from "../demo";
 
-/** A static sample, so that its links do nothing and it can't look like a real page. */
+/**
+ * A sample page in a phone frame. The screen scrolls, so nothing is cut off, while the content inside
+ * is inert, so its links do nothing. The scrollbar stays hidden to keep the page centred in the frame.
+ */
 export function DemoPhone({ preset, label }: { preset: PresetId; label: string }) {
   return (
-    <div
-      role="img"
-      aria-label={label}
-      className="flex h-[30rem] w-full max-w-[20rem] flex-col overflow-hidden rounded-[2rem] border-4 border-brand-midnight bg-white shadow-xl"
-      inert
-    >
-      <ProfileView data={demoProfile(THEME_PRESETS[preset])} preview />
+    <div className="w-full max-w-[20rem] overflow-hidden rounded-[2rem] border-4 border-brand-midnight bg-white shadow-xl">
+      <div
+        role="region"
+        aria-label={label}
+        tabIndex={0}
+        data-testid="demo-phone"
+        className="h-[32rem] overflow-y-auto [scrollbar-width:none] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand-violet [&::-webkit-scrollbar]:hidden"
+      >
+        <div inert className="flex min-h-full flex-col">
+          <ProfileView data={demoProfile(THEME_PRESETS[preset])} preview />
+        </div>
+      </div>
     </div>
   );
 }

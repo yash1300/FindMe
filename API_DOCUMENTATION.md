@@ -82,6 +82,14 @@ These take typed objects rather than forms, and return `{ ok: true, ... }` or `{
 
 `GET /sitemap.xml` lists marketing pages and indexable published profiles, cached for up to an hour. `GET /robots.txt` excludes private areas.
 
+### `POST /api/events`
+
+Page-view beacon, sent by public pages after loading. Takes `{ profileId, referrer? }`. Only accepts requests from the app's own origin. Returns `204` immediately and records after responding; `400`, `403` or `413` for bad requests. Bots and visitors sending Global Privacy Control or Do Not Track aren't counted, and events are rate limited per IP.
+
+### `GET /l/{blockId}`
+
+Counts a click, then returns a `302` to the block's **stored** address, after validating it again. Nothing in the request can change the destination, so it can't be an open redirect. Returns `404` for unknown, hidden, expired or unpublished links.
+
 ### `GET /{username}`
 
 The public page. Returns **404** for unknown, draft, unpublished or suspended pages, and a **308** to the lowercase address for names in other cases.
@@ -90,8 +98,5 @@ The public page. Returns **404** for unknown, draft, unpublished or suspended pa
 
 | Endpoint | Phase | Purpose |
 | --- | --- | --- |
-| `POST /api/events` | 4 | View beacon: filters bots, removes duplicates, never trusts client IDs without checking |
-| `GET /l/{blockId}` | 4 | Click tracking and redirect to the **stored** URL only |
-| `POST /api/webhooks/razorpay` | 5 | Signature-verified, idempotent |
 | `GET /api/leads/export` | 6 | CSV for the owner, strict authorisation |
 | `GET /api/account/export` | 6 | Personal data export |

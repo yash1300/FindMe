@@ -39,7 +39,7 @@ Status per control: ✅ implemented and tested, including against the local Supa
 - ✅ Public reads go through a view that excludes `owner_id`.
 - ✅ Suspended accounts can't write, even by calling the API directly.
 - ✅ Admin role table writable only by service role.
-- 🗓️ Admin panel server-side role checks (Phase 4 for the basics, Phase 6 for the panel).
+- 🔶 `/admin` checks the role on the server and shows others a not-found page. Browser test written but not yet run. The full panel is Phase 6.
 
 ### Input and output
 
@@ -66,12 +66,25 @@ Status per control: ✅ implemented and tested, including against the local Supa
 ### Privacy (India DPDP Act in mind — not a legal opinion)
 
 - ✅ Versioned consent to Terms and Privacy is recorded with a timestamp.
-- 🗓️ No raw IPs in analytics; daily-rotating visitor hash; retention job (Phase 4).
-- 🗓️ Internal previews excluded from analytics (Phase 4).
+- ✅ Analytics stores no IP address or user agent. Visitors are a salted hash that differs per page and rotates daily, and old salts are destroyed. Tested at database level.
+- ✅ Raw events are deleted after 30 days, leaving only daily totals. Tested at database level.
+- 🔶 Bots, previews, Global Privacy Control and Do Not Track are excluded, and creators can turn analytics off. Logic tested; browser tests written but not yet run.
 - 🗓️ Account data export and self-service deletion (Phase 6). **Must ship before public launch.**
 - ✅ Form submissions record the exact consent wording and time. Creators can delete them.
 - ✅ No third-party video code loads until a visitor presses play. Spotify and SoundCloud players load with the page, and the Privacy Policy says so.
 - 🗓️ Lawyer review of legal text (Phase 8).
+
+## Hosted database audit (2026-11-04)
+
+Run against the live Supabase project, on the schema before the analytics migration.
+
+- **58 of 58 attacks were blocked**, using real sessions for two temporary users and anonymous calls: cross-user reads and writes, privilege escalation, forged fields, dangerous URLs, storage abuse, and suspended accounts. The temporary users were then deleted.
+- **Catalogue checked directly:** RLS is on for all 11 tables. Anonymous users can't write to anything and can read only the three `public_*` views. Signed-in users can write only the expected columns. All `SECURITY DEFINER` functions pin their `search_path`.
+- **Also confirmed:** storage allows no SVG, has a 5 MB limit, and has no listing for others; GraphQL exposes nothing to anonymous users; nothing is published to Realtime.
+- `rls_auto_enable` is executable by clients but harmless. Supabase created it as an event trigger that turns on RLS for new tables, and it can't be called directly.
+- **Not covered by this audit:** the Auth dashboard settings, such as password length and email templates, which aren't readable with these keys. Check them against ENV_SETUP.md.
+
+**Re-run this after applying the analytics migration.**
 
 ## Known gaps and accepted risks
 
@@ -93,6 +106,5 @@ These are open and will be re-reviewed in the Phase 8 audit.
 - [ ] Service-role key only in Vercel server environment variables
 - [ ] Supabase: "Confirm email" on, secure password change on, leaked password protection on if the plan allows it
 - [ ] Redirect URL allow-list has production and intended preview origins only
-- [ ] Razorpay webhook secret set; live keys only in production
 - [ ] Independent security review, and `npm audit` reviewed
 - [ ] Legal pages reviewed and the draft banner removed
