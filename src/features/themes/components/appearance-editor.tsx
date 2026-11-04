@@ -23,7 +23,7 @@ type Props = {
 
 function SaveStatus({ state, message }: { state: SaveState; message: string | null }) {
   const content = {
-    saved: { icon: <Check className="size-4 text-emerald-700" aria-hidden />, text: "All changes saved" },
+    saved: { icon: <Check className="size-4 text-emerald-700 dark:text-emerald-300" aria-hidden />, text: "All changes saved" },
     unsaved: { icon: null, text: "Unsaved changes" },
     saving: { icon: <Loader2 className="size-4 animate-spin" aria-hidden />, text: "Saving…" },
     error: { icon: <AlertTriangle className="size-4 text-destructive" aria-hidden />, text: message ?? "Couldn't save" },

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Logo } from "@/components/brand/logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { FormSkeleton } from "@/components/forms/form-skeleton";
 import { Button } from "@/components/ui/button";
 import { OnboardingForm } from "@/features/accounts/components/onboarding-form";
@@ -66,11 +67,14 @@ export default function OnboardingPage() {
     <div className="flex flex-1 flex-col p-6 sm:p-10">
       <header className="flex items-center justify-between">
         <Logo />
-        <form action={signOutAction}>
-          <Button type="submit" variant="ghost" size="sm">
-            Log out
-          </Button>
-        </form>
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+          <form action={signOutAction}>
+            <Button type="submit" variant="ghost" size="sm">
+              Log out
+            </Button>
+          </form>
+        </div>
       </header>
       <main className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-6 py-10">
         <Suspense fallback={<FormSkeleton />}>

@@ -215,6 +215,9 @@ export const BLOCK_DEFINITIONS: Record<BlockType, BlockDefinition> = {
     fields: [
       { name: "heading", label: "Heading", kind: "text", required: true },
       { name: "buttonLabel", label: "Button label", kind: "text", required: true },
+      { name: "field1", label: "Extra question 1", kind: "text", placeholder: "Optional, e.g. Your budget" },
+      { name: "field2", label: "Extra question 2", kind: "text", placeholder: "Optional" },
+      { name: "field3", label: "Extra question 3", kind: "text", placeholder: "Optional" },
     ],
     defaults: { heading: "Get in touch", buttonLabel: "Send message" },
     summary: (config) => text(config.heading),

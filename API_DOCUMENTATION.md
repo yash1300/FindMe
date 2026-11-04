@@ -70,6 +70,19 @@ These take typed objects rather than forms, and return `{ ok: true, ... }` or `{
 | `setPublishStatusAction` | User | Published or unpublished. Can't lift a suspension |
 | `completeWizardAction` | — | Finishes onboarding, optionally publishing |
 
+### Page, domain and account actions
+
+| Action | Notes |
+| --- | --- |
+| `createPageAction`, `switchPageAction`, `deletePageAction` | The page cookie only selects among pages RLS allows. Deleting needs the username typed, and you can't delete your last page |
+| `addDomainAction`, `verifyDomainAction`, `removeDomainAction` | Verification looks up the `_findme` TXT record, then attaches the domain to Vercel if configured |
+| `deleteAccountAction` | Needs "DELETE" typed, and the password if there is one. Removes files, then the login, which cascades |
+| `submitReportAction` | Public. Rate limited, with a spam trap. A link is only recorded if it's on that page |
+
+### Admin actions
+
+Each checks the staff role on the server, requires a reason, and calls a database function that saves the change and its log entry together: `setAccountStatusAction`, `setProfileSuspendedAction`, `hideBlockAction`, `closeReportAction`, and `updateSettingsAction` (admins only).
+
 ### Public form actions
 
 | Action | Rate limit | Notes |
@@ -82,6 +95,30 @@ These take typed objects rather than forms, and return `{ ok: true, ... }` or `{
 
 `GET /sitemap.xml` lists marketing pages and indexable published profiles, cached for up to an hour. `GET /robots.txt` excludes private areas.
 
+### `POST /api/events`
+
+Page-view beacon, sent by public pages after loading. Takes `{ profileId, referrer? }`. Only accepts requests from the app's own origin. Returns `204` immediately and records after responding; `400`, `403` or `413` for bad requests. Bots and visitors sending Global Privacy Control or Do Not Track aren't counted, and events are rate limited per IP.
+
+### `GET /l/{blockId}`
+
+Counts a click, then returns a `302` to the block's **stored** address, after validating it again. Nothing in the request can change the destination, so it can't be an open redirect. Returns `404` for unknown, hidden, expired or unpublished links.
+
+### `GET /api/leads/export`
+
+The current page's signups and messages as CSV. Needs a session; RLS limits it to the user's own data. Cells that spreadsheets would run as formulas are neutralised. Returns `401` when signed out, and `429` over 10 an hour.
+
+### `GET /api/account/export`
+
+Everything held for the signed-in user, as JSON. Same limits.
+
+### `GET /api/cron/maintenance`
+
+Daily cleanup, called by Vercel Cron. Requires `Authorization: Bearer {CRON_SECRET}`, and returns `401` otherwise, including when no secret is set.
+
+### Custom domain routing
+
+On any host that isn't the app's own, `/` serves the page mapped to that domain, or a 404. `/l/*`, `/report` and `/api/events` pass through. Everything else, including sign-in, redirects to the main site.
+
 ### `GET /{username}`
 
 The public page. Returns **404** for unknown, draft, unpublished or suspended pages, and a **308** to the lowercase address for names in other cases.
@@ -90,8 +127,3 @@ The public page. Returns **404** for unknown, draft, unpublished or suspended pa
 
 | Endpoint | Phase | Purpose |
 | --- | --- | --- |
-| `POST /api/events` | 4 | View beacon: filters bots, removes duplicates, never trusts client IDs without checking |
-| `GET /l/{blockId}` | 4 | Click tracking and redirect to the **stored** URL only |
-| `POST /api/webhooks/razorpay` | 5 | Signature-verified, idempotent |
-| `GET /api/leads/export` | 6 | CSV for the owner, strict authorisation |
-| `GET /api/account/export` | 6 | Personal data export |

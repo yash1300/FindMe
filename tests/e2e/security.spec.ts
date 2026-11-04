@@ -105,11 +105,11 @@ test.describe("direct API access with the public key", () => {
     const isAdmin = await rest("rpc/is_admin", aliceToken, { method: "POST", body: "{}" });
     expect(await isAdmin.json()).toBe(false);
 
-    const secondProfile = await rest("profiles", aliceToken, {
+    const pageForBob = await rest("profiles", aliceToken, {
       method: "POST",
-      body: JSON.stringify({ owner_id: aliceProfile.owner_id, username: `${alice.username}x`, display_name: "x" }),
+      body: JSON.stringify({ owner_id: bobProfile.owner_id, username: `${alice.username}x`, display_name: "x" }),
     });
-    expect(secondProfile.status).toBeGreaterThanOrEqual(400);
+    expect(pageForBob.status).toBeGreaterThanOrEqual(400);
   });
 
   test("signing up directly with a reserved username creates no profile", async ({ page }) => {

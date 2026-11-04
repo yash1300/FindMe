@@ -1,12 +1,14 @@
 import "server-only";
 
 import type { User } from "@supabase/supabase-js";
-import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
+import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { cache } from "react";
 import { hasCurrentConsent } from "@/features/legal/versions";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { ACTIVE_PROFILE_COOKIE } from "./constants";
 
 export type Account = {
   id: string;
@@ -28,6 +30,7 @@ export type Profile = {
   theme: unknown;
   version: number;
   is_indexable: boolean;
+  analytics_enabled: boolean;
   onboarding_completed_at: string | null;
   username_changed_at: string | null;
 };
@@ -52,7 +55,7 @@ export async function requireUser(returnTo: string = "/dashboard"): Promise<User
 
 export const getAccountContext = cache(async (userId: string) => {
   const supabase = await createSupabaseServerClient();
-  const [account, profile] = await Promise.all([
+  const [account, profiles, cookieStore] = await Promise.all([
     supabase
       .from("accounts")
       .select("id, display_name, status, terms_accepted_version, privacy_accepted_version")
@@ -61,19 +64,23 @@ export const getAccountContext = cache(async (userId: string) => {
     supabase
       .from("profiles")
       .select(
-        "id, username, display_name, status, bio, avatar_path, cover_path, category, theme, version, is_indexable, onboarding_completed_at, username_changed_at",
+        "id, username, display_name, status, bio, avatar_path, cover_path, category, theme, version, is_indexable, analytics_enabled, onboarding_completed_at, username_changed_at",
       )
       .eq("owner_id", userId)
       .order("created_at")
-      .limit(1)
-      .maybeSingle<Profile>(),
+      .returns<Profile[]>(),
+    cookies(),
   ]);
 
   // Surface these to the error boundary. Treating a failed read as "no profile"
   // would wrongly send an existing user back through onboarding.
   if (account.error) throw new Error(`Could not load account: ${account.error.message}`);
-  if (profile.error) throw new Error(`Could not load profile: ${profile.error.message}`);
-  return { account: account.data, profile: profile.data };
+  if (profiles.error) throw new Error(`Could not load profile: ${profiles.error.message}`);
+
+  // The cookie is only a preference. It selects among the pages RLS already limited to this user.
+  const activeId = cookieStore.get(ACTIVE_PROFILE_COOKIE)?.value;
+  const profile = profiles.data.find((item) => item.id === activeId) ?? profiles.data[0] ?? null;
+  return { account: account.data, profile, profiles: profiles.data };
 });
 
 /** For pages that need a finished, active account. Sends everyone else to the right place. */
@@ -99,4 +106,19 @@ export async function requireProfileOwner() {
   if (!profile || !hasCurrentConsent(account)) redirect("/onboarding");
 
   return { user, account, profile };
+}
+
+export type StaffRole = "admin" | "moderator";
+
+/**
+ * Gate for the admin area. Non-staff get a plain not-found, which doesn't confirm that it exists.
+ * Checked under the user's own session, before any privileged client is touched.
+ */
+export async function requireStaff(options: { adminOnly?: boolean } = {}): Promise<{ user: User; role: StaffRole }> {
+  const user = await requireUser("/admin");
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.from("admin_roles").select("role").eq("user_id", user.id).maybeSingle<{ role: StaffRole }>();
+  if (error || !data) notFound();
+  if (options.adminOnly && data.role !== "admin") notFound();
+  return { user, role: data.role };
 }

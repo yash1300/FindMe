@@ -95,6 +95,9 @@ export const BLOCK_SCHEMAS = {
   contact_form: z.object({
     heading: requiredText("a heading", 100),
     buttonLabel: requiredText("a button label", 40),
+    field1: optionalText(40),
+    field2: optionalText(40),
+    field3: optionalText(40),
   }),
 } as const;
 

@@ -1,18 +1,21 @@
 "use client";
 
-import { CircleHelp, LayoutDashboard, Link2, Palette, QrCode, Settings, UserRound, Users } from "lucide-react";
+import { BarChart3, CircleHelp, Files, Globe, LayoutDashboard, Link2, Palette, QrCode, Settings, UserRound, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-// Only pages that exist are listed. Analytics, Integrations and Billing join as their phases ship.
+// FindMe is free, so there's no Billing.
 const ITEMS = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/my-page", label: "My Page", icon: UserRound },
   { href: "/dashboard/links", label: "Links", icon: Link2 },
   { href: "/dashboard/appearance", label: "Appearance", icon: Palette },
+  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/dashboard/audience", label: "Audience", icon: Users },
   { href: "/dashboard/qr", label: "QR Code", icon: QrCode },
+  { href: "/dashboard/pages", label: "Pages", icon: Files },
+  { href: "/dashboard/domains", label: "Domains", icon: Globe },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
   { href: "/dashboard/help", label: "Help", icon: CircleHelp },
 ];

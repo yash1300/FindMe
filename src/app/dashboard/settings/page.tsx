@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmailForm, NameForm, PasswordForm } from "@/features/accounts/components/settings-forms";
+import { buttonVariants } from "@/components/ui/button";
+import { DeleteAccountForm, EmailForm, NameForm, PasswordForm } from "@/features/accounts/components/settings-forms";
 import { requireOnboardedUser } from "@/features/auth/session";
 
 export const metadata: Metadata = { title: "Settings" };
@@ -45,6 +46,29 @@ export default async function SettingsPage() {
             <PasswordForm />
           </CardContent>
         ) : null}
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Your data</CardTitle>
+          <CardDescription>Download a copy of everything FindMe holds for you, including your pages, signups and analytics totals.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <a href="/api/account/export" download className={buttonVariants({ variant: "outline" })}>Download my data</a>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Delete account</CardTitle>
+          <CardDescription>This permanently removes your account, all your pages, your images, and the signups and messages you&apos;ve collected. It can&apos;t be undone.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <details>
+            <summary className="cursor-pointer text-sm text-muted-foreground">I want to delete my account</summary>
+            <div className="mt-4"><DeleteAccountForm hasPassword={hasPassword} /></div>
+          </details>
+        </CardContent>
       </Card>
     </div>
   );

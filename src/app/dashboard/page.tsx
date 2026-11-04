@@ -2,6 +2,10 @@ import { Eye, Link2, Palette, Plus, Share2, UserRound } from "lucide-react";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BarList, MetricCards } from "@/features/analytics/components/analytics-parts";
+import { TrendChart } from "@/features/analytics/components/trend-chart";
+import { getDailyRows } from "@/features/analytics/queries";
+import { parseRange, summarize, todayInIndia } from "@/features/analytics/summary";
 import { requireOnboardedUser } from "@/features/auth/session";
 import { blockState } from "@/features/blocks/schedule";
 import { getOwnerContent } from "@/features/profile/queries";
@@ -24,7 +28,13 @@ const QUICK_ACTIONS = [
 
 export default async function DashboardPage() {
   const { account, profile } = await requireOnboardedUser();
-  const { blocks, socialLinks } = await getOwnerContent(profile.id);
+  const range = parseRange({ range: "30" }, todayInIndia());
+  const [{ blocks, socialLinks }, rows] = await Promise.all([getOwnerContent(profile.id), getDailyRows(profile.id, range.from, range.to)]);
+  const summary = summarize(rows, range);
+  const titleOf = (id: string) => {
+    const title = blocks.find((block) => block.id === id)?.config.title;
+    return typeof title === "string" ? title : "Deleted link";
+  };
 
   const activeLinks = blocks.filter(
     (block) => ["link", "featured_link", "product_card"].includes(block.type) && blockState(block) === "live",
@@ -75,6 +85,31 @@ export default async function DashboardPage() {
           </CardHeader>
         </Card>
       </div>
+
+      <section className="grid gap-3" aria-label="Last 30 days">
+        <h2 className="text-sm font-medium text-muted-foreground">Last 30 days</h2>
+        <MetricCards summary={summary} />
+        {summary.views > 0 || summary.clicks > 0 ? (
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+            <Card>
+              <CardHeader>
+                <CardTitle>Performance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TrendChart series={summary.series} />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Top links</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <BarList barColor="var(--chart-clicks)" emptyText="No clicks yet." rows={summary.blockClicks.slice(0, 5).map((item) => ({ label: titleOf(item.blockId), value: item.clicks }))} />
+              </CardContent>
+            </Card>
+          </div>
+        ) : null}
+      </section>
 
       <section className="grid gap-3" aria-label="Quick actions">
         <h2 className="text-sm font-medium text-muted-foreground">Quick actions</h2>

@@ -52,6 +52,16 @@ export default function PrivacyPage() {
         </p>
       </section>
       <section>
+        <h2>Page analytics</h2>
+        <p>
+          When someone visits a FindMe page or clicks a link on it, we record that it happened, along with broad categories: the type of device,
+          browser and operating system, the kind of site they came from, and their country where available. We don&apos;t store IP addresses. Visitors are
+          counted using a scrambled ID that changes every day and differs for each page, so we can&apos;t recognise someone across days or pages.
+          Detailed records are deleted after 30 days, and only daily totals are kept. Creators see totals, never individual visitors. We don&apos;t count
+          visitors whose browser sends a Global Privacy Control or Do Not Track signal, and creators can turn analytics off for their page.
+        </p>
+      </section>
+      <section>
         <h2>Embedded content</h2>
         <p>
           Creators can embed videos and music. Video players load only when you press play. Spotify and SoundCloud players
@@ -65,8 +75,9 @@ export default function PrivacyPage() {
       <section>
         <h2>Your choices</h2>
         <p>
-          You can change your name, email address, and password in Settings. You can ask for a copy of your data or
-          for your account to be deleted{supportEmail ? " by contacting us" : ""}.
+          You can change your name, email address, and password in Settings. You can also download a copy of your data
+          or permanently delete your account there. If you report a page, we keep your report and any email you give so that we can review it.
+          For anything else, {supportEmail ? "contact us" : "use our Contact page"}.
           {supportEmail ? (
             <>
               {" "}

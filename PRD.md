@@ -53,7 +53,7 @@ Native apps, multiple languages, Stripe or other currencies (the architecture al
 
 ## 6. Plans
 
-From Phase 5, prices, limits and entitlements will live in the database and be editable by admins. Until then, everything built so far is free for all users, with FindMe branding on every page. **No prices are decided yet — see [Open decisions](#8-open-decisions).**
+**Decision (2026-11-04): FindMe is free for everyone for now, with every feature included.** The table below records the earlier idea for paid plans, in case that changes. **No prices are decided yet — see [Open decisions](#8-open-decisions).**
 
 | | Free | Pro | Business |
 | --- | --- | --- | --- |
@@ -88,9 +88,9 @@ Owner: product owner. "Blocks" means the listed phase cannot be finished without
 | --- | --- | --- | --- |
 | 1 | **Domain.** Is `findme.com` actually owned or purchasable? | The domain comes from `NEXT_PUBLIC_APP_URL`; nothing is hardcoded | Phase 8 |
 | 2 | **Trademark.** "FindMe" is a generic and likely contested name. Run a search before spending on brand | Continue building | Phase 8 |
-| 3 | **Plan prices** in INR, monthly and annual | No prices are displayed; the Pricing page shows features only | Phase 5 |
-| 4 | **Legal entity and GSTIN** for Razorpay and invoices | Billing stays disabled | Phase 5 |
+| 3 | ~~Plan prices~~ | Decided: free for everyone for now | |
+| 4 | ~~Legal entity and GSTIN for billing~~ | Not needed while FindMe is free | |
 | 5 | **Legal text.** Lawyer review of Privacy and Terms, including DPDP Act obligations | Pages are clearly marked as drafts | Phase 8 |
 | 6 | **Support and grievance contact** details | Read from environment configuration | Phase 8 |
-| 7 | **Analytics retention period** | 90 days raw, aggregates kept | Phase 4 |
+| 7 | ~~Analytics retention~~ | Decided: 30 days raw, daily totals kept | |
 | 8 | **AI provider, budget and data handling** | Not built | Phase 7 |

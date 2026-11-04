@@ -40,6 +40,7 @@ export default async function MyPagePage() {
               avatarPath: profile.avatar_path,
               coverPath: profile.cover_path,
               isIndexable: profile.is_indexable,
+              analyticsEnabled: profile.analytics_enabled,
               version: Number(profile.version),
             }}
           />

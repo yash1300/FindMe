@@ -110,6 +110,8 @@ export function SocialIcons({ links }: { links: RenderContext["socialLinks"] }) 
 /** Renders one validated block. There is no raw HTML: everything goes through React's escaping. */
 export function BlockView({ block, context }: { block: RenderableBlock; context: RenderContext }) {
   const { buttonStyle, showIcons } = context;
+  // Public links go through /l/{id}, which counts the click and redirects to the stored address.
+  const href = (url: string) => (context.preview ? url : `/l/${block.id}`);
 
   switch (block.type) {
     case "link": {
@@ -117,7 +119,7 @@ export function BlockView({ block, context }: { block: RenderableBlock; context:
       const Icon = icon ? LINK_ICONS[icon] : null;
       return (
         <Button
-          href={url}
+          href={href(url)}
           style={variant && variant !== "theme" ? variant : buttonStyle}
           thumbnail={publicMediaUrl(thumbnailPath)}
           icon={showIcons && Icon ? <Icon className="fm-button-icon" aria-hidden /> : undefined}
@@ -131,7 +133,7 @@ export function BlockView({ block, context }: { block: RenderableBlock; context:
       const { title, url, description, thumbnailPath } = block.config;
       const image = publicMediaUrl(thumbnailPath);
       return (
-        <a href={url} className="fm-card" {...EXTERNAL}>
+        <a href={href(url)} className="fm-card" {...EXTERNAL}>
           {image ? (
             <span className="fm-card-media" style={{ display: "block" }}>
               <Image src={image} alt="" fill sizes="(max-width: 640px) 100vw, 36rem" style={{ objectFit: "cover" }} />
@@ -148,7 +150,7 @@ export function BlockView({ block, context }: { block: RenderableBlock; context:
       const { title, url, description, price, imagePath } = block.config;
       const image = publicMediaUrl(imagePath);
       return (
-        <a href={url} className="fm-card" {...EXTERNAL}>
+        <a href={href(url)} className="fm-card" {...EXTERNAL}>
           {image ? (
             <span className="fm-card-media" style={{ display: "block" }}>
               <Image src={image} alt="" fill sizes="(max-width: 640px) 100vw, 36rem" style={{ objectFit: "cover" }} />
@@ -176,7 +178,7 @@ export function BlockView({ block, context }: { block: RenderableBlock; context:
       if (!src) return null;
       const image = <Image src={src} alt={alt ?? ""} fill sizes="(max-width: 640px) 100vw, 36rem" style={{ objectFit: "cover" }} loading="lazy" />;
       return linkUrl ? (
-        <a href={linkUrl} className="fm-image" {...EXTERNAL}>{image}</a>
+        <a href={href(linkUrl)} className="fm-image" {...EXTERNAL}>{image}</a>
       ) : (
         <div className="fm-image">{image}</div>
       );
@@ -223,7 +225,7 @@ export function BlockView({ block, context }: { block: RenderableBlock; context:
       );
     case "announcement":
       return block.config.url ? (
-        <a href={block.config.url} className="fm-announcement" {...EXTERNAL}>{block.config.text}</a>
+        <a href={href(block.config.url)} className="fm-announcement" {...EXTERNAL}>{block.config.text}</a>
       ) : (
         <p className="fm-announcement">{block.config.text}</p>
       );
@@ -242,7 +244,13 @@ export function BlockView({ block, context }: { block: RenderableBlock; context:
         <div className="fm-card">
           <div className="fm-card-body">
             <h2 className="fm-card-title">{block.config.heading}</h2>
-            <ContactForm blockId={block.id} ownerName={context.ownerName} buttonLabel={block.config.buttonLabel} preview={context.preview} />
+            <ContactForm
+              blockId={block.id}
+              ownerName={context.ownerName}
+              buttonLabel={block.config.buttonLabel}
+              preview={context.preview}
+              extraFields={[block.config.field1, block.config.field2, block.config.field3]}
+            />
           </div>
         </div>
       );

@@ -17,7 +17,8 @@
 | `RESEND_API_KEY` | **Secret** | Recommended | Notification emails. Without it, messages are still saved |
 | `EMAIL_FROM` | Server | With Resend | Sender, on a domain verified in Resend |
 | `CONTACT_INBOX_EMAIL` | Server | Optional | Where marketing Contact page messages are sent |
-| `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` | **Secret** | Phase 5 | Payments |
+| `CRON_SECRET` | **Secret** | Recommended | Lets Vercel run the daily maintenance job. Without it the job refuses to run. Any long random string |
+| `VERCEL_API_TOKEN`, `VERCEL_PROJECT_ID` | **Secret** | For custom domains | Attaches verified domains to the project. Add `VERCEL_TEAM_ID` if the project is under a team |
 
 ## Local development
 
@@ -40,7 +41,7 @@ Local email goes to the Mailpit inbox at http://127.0.0.1:54324. Nothing is real
    ```bash
    npx supabase login
    npx supabase link --project-ref <ref>
-   npx supabase db push
+   npx supabase db push --remote
    ```
 
 3. **Authentication → URL configuration**
@@ -72,6 +73,14 @@ Local email goes to the Mailpit inbox at http://127.0.0.1:54324. Nothing is real
 2. Add the variables above for Production and Preview, pointing Preview at the staging Supabase project.
 3. Attach the domain, then update `NEXT_PUBLIC_APP_URL` and the Supabase URL settings to match.
 4. Consider Mumbai (`bom1`) as the function region, close to the database.
+
+## Making someone an admin
+
+There's no screen for this on purpose. In the Supabase SQL editor, using the user's ID from Authentication → Users:
+
+```sql
+insert into public.admin_roles (user_id, role) values ('USER-ID-HERE', 'admin');
+```
 
 ## Verifying a deployment
 

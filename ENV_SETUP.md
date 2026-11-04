@@ -25,6 +25,8 @@ After changing any value, restart `npm run dev`, or run `npm run build` again. `
 | `EMAIL_FROM` | With Resend | No | [Step 4](#step-4-resend-email) |
 | `CONTACT_INBOX_EMAIL` | Optional | No | [Step 4](#step-4-resend-email) |
 | `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED` | Optional | No | [Step 5](#step-5-google-sign-in-optional) |
+| `CRON_SECRET` | Recommended | **Yes** | [Step 6](#step-6-daily-maintenance-job) |
+| `VERCEL_API_TOKEN`, `VERCEL_PROJECT_ID` | For custom domains | **Yes** | [Step 7](#step-7-custom-domains-optional) |
 
 Without the optional values, the app still works, but no notification emails go out and the Google button stays hidden. Nothing is lost: messages from creators' page forms appear under **Audience**, and messages from your site's Contact page are saved in the `contact_submissions` table, which you can view in Supabase's Table Editor until the admin panel arrives in Phase 6.
 
@@ -66,7 +68,7 @@ Supabase holds your database, logins and uploaded images. The free plan is enoug
    ```bash
    npx supabase login
    npx supabase link --project-ref YOUR_PROJECT_REF
-   npx supabase db push
+   npx supabase db push --remote
    ```
 
    `YOUR_PROJECT_REF` is the `xxxx` part of your Project URL. `link` asks for the database password from step 2.
@@ -136,6 +138,30 @@ Resend sends notification emails when someone uses a contact form, and provides 
    NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true
    ```
 
+## Step 6: Daily maintenance job
+
+This deletes old analytics and accounts that never confirmed their email.
+
+1. Create a long random string, such as a password manager's generated password.
+2. In Vercel, add it as `CRON_SECRET` under **Settings → Environment Variables**. Vercel sends it automatically when it runs the job, so nothing else is needed. The schedule is in `vercel.json`.
+
+## Step 7: Custom domains (optional)
+
+Lets people show their page on their own web address. Check how many domains your Vercel plan allows first.
+
+1. In Vercel, open **Account Settings → Tokens** and create a token, then add it as `VERCEL_API_TOKEN`.
+2. In your project, open **Settings → General**, copy the **Project ID**, and add it as `VERCEL_PROJECT_ID`. If the project belongs to a team, also add `VERCEL_TEAM_ID`.
+
+## Making yourself an admin
+
+In Supabase's **SQL Editor**, using your user ID from **Authentication → Users**:
+
+```sql
+insert into public.admin_roles (user_id, role) values ('YOUR-USER-ID', 'admin');
+```
+
+Then open `/admin` on your site.
+
 ---
 
 ## Your finished `.env.local`
@@ -155,7 +181,7 @@ CONTACT_INBOX_EMAIL=
 ## Check that it worked
 
 1. Run `npm run dev`, and open <http://127.0.0.1:3000/api/health>. You should see `{"status":"ok","database":"ok"}`.
-   - **`degraded`:** check the three Supabase values, and that `npx supabase db push` succeeded.
+   - **`degraded`:** check the three Supabase values, and that `npx supabase db push --remote` succeeded.
 2. Open <http://127.0.0.1:3000/register> and create an account using a real email address.
 3. Follow the link in the email. You should arrive at the setup wizard.
    - **No email:** check your spam folder, then the Supabase rate limit.
@@ -170,5 +196,4 @@ These aren't needed yet:
 
 | Needed for | What |
 | --- | --- |
-| Going live | A Vercel account, with these same values added under **Project → Settings → Environment Variables**. See [DEPLOYMENT.md](DEPLOYMENT.md) |
-| Phase 5, payments | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` and `RAZORPAY_WEBHOOK_SECRET` from Razorpay test mode, plus your plan prices and GSTIN |
+| Going live | **Add these same values in Vercel, under Project → Settings → Environment Variables, then redeploy.** `.env.local` is only on your computer, so Vercel can't see it. Set `NEXT_PUBLIC_APP_URL` there to your live address. See [DEPLOYMENT.md](DEPLOYMENT.md) |

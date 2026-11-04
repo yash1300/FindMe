@@ -89,6 +89,12 @@ export function ProfileView({ data, preview = false }: { data: ProfileViewData; 
 
         <footer className="fm-footer">
           <a href={getAppUrl()} tabIndex={preview ? -1 : undefined}>Made with FindMe</a>
+          {preview ? null : (
+            <>
+              {" · "}
+              <a href={`${getAppUrl()}/report?u=${data.username}`} rel="nofollow">Report</a>
+            </>
+          )}
         </footer>
       </div>
     </div>

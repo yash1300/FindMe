@@ -187,12 +187,14 @@ describe("profiles access", () => {
     expect(rows[0].published_at).toBeInstanceOf(Date);
   });
 
-  it("limits an account to one profile", async () => {
+  it("limits an account to the configured number of profiles", async () => {
+    await db.query("update public.platform_settings set value = '1' where key = 'max_profiles_per_account'");
     await expect(
       runAs(db, asAlice(), (q) =>
         q("insert into public.profiles (owner_id, username, display_name) values ($1, 'alice2', 'x')", [alice]),
       ),
     ).rejects.toThrow(/profile limit reached/);
+    await db.query("update public.platform_settings set value = '5' where key = 'max_profiles_per_account'");
   });
 
   it("rejects usernames that differ only by case", async () => {
@@ -318,7 +320,7 @@ describe("internal tables", () => {
     const byGrantee = (grantee: string) =>
       rows.filter((r) => r.grantee === grantee).map((r) => r.proname).sort();
     // is_valid_username_format stays open on purpose: it is pure, and CHECK constraints call it.
-    expect(byGrantee("anon")).toEqual(["is_username_available", "is_valid_username_format"]);
+    expect(byGrantee("anon")).toEqual(["is_username_available", "is_valid_username_format", "resolve_custom_domain"]);
     expect(byGrantee("authenticated")).toEqual([
       "is_active_account",
       "is_admin",
@@ -328,6 +330,7 @@ describe("internal tables", () => {
       "record_consent",
       "reorder_blocks",
       "reorder_social_links",
+      "resolve_custom_domain",
     ]);
   });
 });

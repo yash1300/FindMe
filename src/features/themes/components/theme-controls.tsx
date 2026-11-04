@@ -60,7 +60,7 @@ function RangeField({ id, label, value, min, max, suffix, onChange }: { id: stri
 
 function ContrastWarning({ foreground, background, label }: { foreground: string; background: string; label: string }) {
   if (contrastRatio(foreground, background) >= 4.5) return null;
-  return <p className="rounded-md bg-amber-50 p-2 text-xs text-amber-950">{label} may be hard to read against this background.</p>;
+  return <p className="rounded-md bg-amber-50 dark:bg-amber-950/60 p-2 text-xs text-amber-950 dark:text-amber-100">{label} may be hard to read against this background.</p>;
 }
 
 export function PresetPicker({ current, onChoose }: { current: PresetId; onChoose: (preset: PresetId) => void }) {

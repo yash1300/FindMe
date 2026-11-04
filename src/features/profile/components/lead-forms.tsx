@@ -64,7 +64,7 @@ export function NewsletterForm({ blockId, ownerName, buttonLabel, preview }: For
   );
 }
 
-export function ContactForm({ blockId, ownerName, buttonLabel, preview }: FormProps) {
+export function ContactForm({ blockId, ownerName, buttonLabel, preview, extraFields = [] }: FormProps & { extraFields?: (string | undefined)[] }) {
   const [state, action, pending] = useActionState(submitLeadAction, IDLE_STATE);
   if (state.status === "success") return <p className="fm-form-message" role="status">{state.message}</p>;
 
@@ -86,6 +86,14 @@ export function ContactForm({ blockId, ownerName, buttonLabel, preview }: FormPr
         <textarea id={`${blockId}-message`} className="fm-field" name="message" rows={4} defaultValue={state.values?.message} required />
         {state.fieldErrors?.message ? <p className="fm-form-message">{state.fieldErrors.message}</p> : null}
       </div>
+      {extraFields.map((label, index) =>
+        label ? (
+          <div key={index}>
+            <label htmlFor={`${blockId}-custom-${index + 1}`} className="fm-field-label">{label}</label>
+            <input id={`${blockId}-custom-${index + 1}`} className="fm-field" name={`custom${index + 1}`} maxLength={500} />
+          </div>
+        ) : null,
+      )}
       <Consent id={`${blockId}-consent`} text={leadConsentText("contact", ownerName)} error={state.fieldErrors?.consent} />
       {state.message ? <p className="fm-form-message" role="alert">{state.message}</p> : null}
       <SubmitRow label={buttonLabel} preview={preview} pending={pending} />

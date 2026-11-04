@@ -1,12 +1,12 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Logo } from "@/components/brand/logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
 
 const NAV = [
   { href: "/features", label: "Features" },
   { href: "/themes", label: "Themes" },
-  { href: "/pricing", label: "Pricing" },
   { href: "/faq", label: "FAQ" },
 ];
 
@@ -30,6 +30,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
           ))}
         </nav>
         <nav aria-label="Account" className="flex items-center gap-2">
+          <ThemeToggle />
           <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
             Log in
           </Link>

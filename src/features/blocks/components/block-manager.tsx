@@ -24,8 +24,8 @@ type Props = {
 
 const STATE_LABELS = {
   hidden: { label: "Hidden", className: "bg-muted text-muted-foreground" },
-  scheduled: { label: "Scheduled", className: "bg-blue-100 text-blue-900" },
-  expired: { label: "Expired", className: "bg-amber-100 text-amber-950" },
+  scheduled: { label: "Scheduled", className: "bg-blue-100 dark:bg-blue-950 text-blue-900 dark:text-blue-100" },
+  expired: { label: "Expired", className: "bg-amber-100 dark:bg-amber-950 text-amber-950 dark:text-amber-100" },
 } as const;
 
 function AddMenu({ onChoose, onClose }: { onChoose: (type: BlockType) => void; onClose: () => void }) {

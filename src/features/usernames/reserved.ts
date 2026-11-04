@@ -1,5 +1,5 @@
 /**
- * Must match the seed in supabase/migrations/20261103000000_foundation.sql, and include
+ * Must match the seeds in supabase/migrations, and include
  * every top-level route. tests/unit/usernames-sync.test.ts enforces both, so adding a
  * route without reserving its name (in a new migration) fails the build's tests.
  */
@@ -7,8 +7,8 @@ export const RESERVED_USERNAMES = [
   // Current and planned application routes
   "about", "account", "accounts", "admin", "api", "app", "auth", "billing", "blog", "callback",
   "contact", "dashboard", "docs", "examples", "faq", "features", "forgot-password", "help",
-  "home", "integrations", "login", "logout", "manifest", "onboarding", "pricing", "privacy",
-  "register", "reset-password", "robots", "settings", "signin", "signout", "signup", "sitemap",
+  "home", "integrations", "l", "login", "logout", "manifest", "onboarding", "pricing", "privacy",
+  "register", "report", "reset-password", "robots", "settings", "signin", "signout", "signup", "sitemap",
   "static", "status", "support", "suspended", "terms", "themes", "verify-email", "www",
   // Brand and trust-sensitive names
   "abuse", "administrator", "billing-support", "findme", "find-me", "findme-official",

@@ -28,6 +28,8 @@ const detailsSchema = z.object({
   avatarPath: mediaPathSchema.nullable(),
   coverPath: mediaPathSchema.nullable(),
   isIndexable: z.boolean(),
+  // The onboarding wizard doesn't ask about this, so it leaves the setting as it is.
+  analyticsEnabled: z.boolean().optional(),
   expectedVersion: z.number().int().positive(),
 });
 
@@ -37,7 +39,7 @@ export async function updateProfileDetailsAction(input: unknown): Promise<Action
   const parsed = detailsSchema.safeParse(input);
   if (!parsed.success) return failure("Please check the highlighted fields.", fieldErrorsFrom(parsed.error));
 
-  const { displayName, bio, category, avatarPath, coverPath, isIndexable, expectedVersion } = parsed.data;
+  const { displayName, bio, category, avatarPath, coverPath, isIndexable, analyticsEnabled, expectedVersion } = parsed.data;
   for (const path of [avatarPath, coverPath]) {
     if (path && !isMediaPathOwnedBy(path, user.id)) return failure("That image isn't available.");
   }
@@ -55,6 +57,7 @@ export async function updateProfileDetailsAction(input: unknown): Promise<Action
       avatar_path: avatarPath,
       cover_path: coverPath,
       is_indexable: isIndexable,
+      ...(analyticsEnabled === undefined ? {} : { analytics_enabled: analyticsEnabled }),
     })
     .eq("id", profile.id)
     .eq("version", expectedVersion)

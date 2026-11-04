@@ -103,7 +103,7 @@ export function UsernameField({
             <Loader2 className="size-3 animate-spin" aria-label="Checking availability" />
           ) : null}
           {normalized && availability.state === "available" ? (
-            <span className="inline-flex items-center gap-0.5 font-medium text-emerald-700">
+            <span className="inline-flex items-center gap-0.5 font-medium text-emerald-700 dark:text-emerald-300">
               <Check className="size-3" aria-hidden /> Available
             </span>
           ) : null}

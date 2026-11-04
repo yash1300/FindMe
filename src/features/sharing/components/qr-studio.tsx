@@ -101,7 +101,7 @@ export function QrStudio({ url, title, username }: { url: string; title: string;
             </div>
           </div>
           {lowContrast ? (
-            <p role="status" className="rounded-md bg-amber-50 p-2 text-xs text-amber-950">
+            <p role="status" className="rounded-md bg-amber-50 dark:bg-amber-950/60 p-2 text-xs text-amber-950 dark:text-amber-100">
               These colours are too similar, so this code may not scan. Test it with your phone before printing.
             </p>
           ) : null}

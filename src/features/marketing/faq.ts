@@ -5,7 +5,7 @@ export const FAQ_ITEMS = [
   },
   {
     question: "Is it free?",
-    answer: "Yes. You can create and publish your page for free. Paid plans with extra features are planned, and nothing you've made will be taken away when they arrive.",
+    answer: "Yes. FindMe is free for everyone, with every feature included.",
   },
   {
     question: "Do I need to know how to code?",

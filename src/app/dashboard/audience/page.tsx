@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireOnboardedUser } from "@/features/auth/session";
 import { deleteLeadAction } from "@/features/leads/actions";
@@ -19,6 +19,7 @@ type Lead = {
   message: string | null;
   consent_text: string;
   created_at: string;
+  custom_fields: Record<string, string> | null;
 };
 
 export default async function AudiencePage() {
@@ -26,7 +27,7 @@ export default async function AudiencePage() {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("leads")
-    .select("id, kind, email, name, message, consent_text, created_at")
+    .select("id, kind, email, name, message, consent_text, created_at, custom_fields")
     .eq("profile_id", profile.id)
     .order("created_at", { ascending: false })
     .limit(PAGE_SIZE);
@@ -35,9 +36,12 @@ export default async function AudiencePage() {
 
   return (
     <div className="mx-auto grid max-w-3xl gap-6">
-      <div className="grid gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Audience</h1>
-        <p className="text-sm text-muted-foreground">People who signed up or messaged you through your page. Only you can see this.</p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="grid gap-1">
+          <h1 className="text-2xl font-semibold tracking-tight">Audience</h1>
+          <p className="text-sm text-muted-foreground">People who signed up or messaged you through your page. Only you can see this.</p>
+        </div>
+        {leads.length > 0 ? <a href="/api/leads/export" download className={buttonVariants({ variant: "outline", size: "sm" })}>Export CSV</a> : null}
       </div>
 
       {leads.length === 0 ? (
@@ -59,6 +63,9 @@ export default async function AudiencePage() {
                       {lead.kind === "newsletter" ? "Newsletter" : "Contact form"} · {DATE_FORMAT.format(new Date(lead.created_at))}
                     </p>
                     {lead.message ? <p className="mt-2 break-words whitespace-pre-line">{lead.message}</p> : null}
+                    {Object.entries(lead.custom_fields ?? {}).map(([label, value]) => (
+                      <p key={label} className="mt-1 break-words"><span className="text-muted-foreground">{label}:</span> {value}</p>
+                    ))}
                     <p className="mt-2 text-xs text-muted-foreground">Agreed: &ldquo;{lead.consent_text}&rdquo;</p>
                   </div>
                   <form action={deleteLeadAction}>

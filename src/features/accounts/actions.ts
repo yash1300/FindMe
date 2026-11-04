@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   type ActionState,
@@ -17,6 +17,9 @@ import { usernameSchema } from "@/features/usernames/schema";
 import { getAppUrl } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import { checkRateLimits, RATE_LIMITS, rateLimitKey, type RateLimitRule } from "@/lib/security/rate-limit";
+import { MEDIA_BUCKET } from "@/features/media/paths";
+import { profileTag, SITEMAP_TAG } from "@/features/profile/tags";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 async function enforceUserLimit(scope: string, userId: string, rule: RateLimitRule): Promise<ActionState | null> {
@@ -177,4 +180,66 @@ export async function changeEmailAction(_prev: ActionState, formData: FormData):
     status: "success",
     message: "Check your inbox. The change finishes once you confirm from both your current and new addresses.",
   };
+}
+
+const DELETE_WORD = "DELETE";
+
+/**
+ * Permanently deletes the account. A password is required too, where there is one, so an unattended
+ * signed-in browser isn't enough. Removal of everything else cascades from the login.
+ */
+export async function deleteAccountAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const user = await requireUser("/dashboard/settings");
+  const { confirm, password } = formValues(formData, ["confirm", "password"]);
+  if (confirm !== DELETE_WORD) return { status: "error", fieldErrors: { confirm: `Type ${DELETE_WORD} to confirm.` } };
+
+  const limited = await enforceUserLimit("account_delete:user", user.id, RATE_LIMITS.credentialChangeByUser);
+  if (limited) return limited;
+
+  const supabase = await createSupabaseServerClient();
+  const hasPassword = user.identities?.some((identity) => identity.provider === "email") ?? false;
+  if (hasPassword) {
+    const { error } = user.email && password ? await supabase.auth.signInWithPassword({ email: user.email, password }) : { error: { code: "invalid_credentials" } };
+    if (error) return { status: "error", fieldErrors: { password: "That password isn't correct." } };
+  }
+
+  const { profiles } = await getAccountContext(user.id);
+  const admin = createSupabaseAdminClient();
+
+  // Staff roles guard moderation, so losing one should be deliberate.
+  const { data: role } = await admin.from("admin_roles").select("role").eq("user_id", user.id).maybeSingle();
+  if (role) return formError("Staff accounts can't be deleted until their role is removed.");
+
+  // Files don't cascade with the database. Failing here leaves the account for the user to retry.
+  const files: string[] = [];
+  for (let page = 0; ; page += 1) {
+    const { data, error } = await admin.storage.from(MEDIA_BUCKET).list(user.id, { limit: 1000, offset: page * 1000 });
+    if (error) {
+      logger.error("account.delete_list_failed", { message: error.message });
+      return formError(UNAVAILABLE_MESSAGE);
+    }
+    files.push(...data.map((file) => `${user.id}/${file.name}`));
+    if (data.length < 1000) break;
+  }
+  if (files.length > 0) {
+    const { error } = await admin.storage.from(MEDIA_BUCKET).remove(files);
+    if (error) {
+      logger.error("account.delete_files_failed", { message: error.message });
+      return formError(UNAVAILABLE_MESSAGE);
+    }
+  }
+
+  const { error: auditError } = await admin.from("audit_logs").insert({ actor_id: user.id, action: "account.deleted", target_type: "account", target_id: user.id });
+  if (auditError) logger.error("account.delete_audit_failed", { code: auditError.code });
+
+  const { error } = await admin.auth.admin.deleteUser(user.id);
+  if (error) {
+    logger.error("account.delete_failed", { message: error.message });
+    return formError(UNAVAILABLE_MESSAGE);
+  }
+
+  for (const item of profiles) updateTag(profileTag(item.username));
+  updateTag(SITEMAP_TAG);
+  await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+  redirect("/");
 }

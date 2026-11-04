@@ -28,7 +28,7 @@ export function PreviewFrame({ data }: { data: ProfileViewData }) {
       <div
         data-testid="live-preview"
         data-device={device}
-        className={`mx-auto flex w-full flex-col overflow-y-auto rounded-2xl border bg-white shadow-sm transition-[max-width] ${
+        className={`mx-auto flex w-full flex-col overflow-y-auto rounded-2xl border bg-white shadow-sm transition-[max-width] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
           device === "mobile" ? "max-w-[24rem]" : "max-w-full"
         }`}
         style={{ height: "min(70vh, 44rem)" }}
