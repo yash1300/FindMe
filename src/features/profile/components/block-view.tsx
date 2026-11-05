@@ -22,7 +22,7 @@ import { parseSoundCloud, parseSpotify, parseVideo, parseYouTube } from "@/featu
 import type { LinkIcon, RenderableBlock } from "@/features/blocks/schema";
 import { publicMediaUrl } from "@/features/media/paths";
 import { SOCIAL_ICONS } from "@/features/social/icons";
-import { platformLabel, type SocialPlatformId } from "@/features/social/platforms";
+import { isSocialPlatform, normalizeSocialUrl, platformLabel, type SocialPlatformId } from "@/features/social/platforms";
 import { AudioPlayer, VideoPlayer } from "./embed-player";
 import { ContactForm, NewsletterForm } from "./lead-forms";
 
@@ -115,8 +115,10 @@ export function BlockView({ block, context }: { block: RenderableBlock; context:
 
   switch (block.type) {
     case "link": {
-      const { title, url, description, thumbnailPath, icon, variant } = block.config;
-      const Icon = icon ? LINK_ICONS[icon] : null;
+      const { title, url, description, thumbnailPath, icon, variant, platform } = block.config;
+      // A platform's logo only appears if the link still goes there, even after the button is edited.
+      const brand = platform && isSocialPlatform(platform) && normalizeSocialUrl(platform, url) ? SOCIAL_ICONS[platform] : null;
+      const Icon = icon ? LINK_ICONS[icon] : brand;
       return (
         <Button
           href={href(url)}

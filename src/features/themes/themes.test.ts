@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { contrastRatio, themeToStyle } from "./css";
+import { contrastRatio, readableOn, themeToStyle } from "./css";
 import { DEFAULT_PRESET, parseTheme, PRESET_LIST, THEME_PRESETS } from "./presets";
 import { PRESET_IDS, themeSchema } from "./schema";
 
@@ -25,6 +25,39 @@ describe("presets", () => {
   it.each(PRESET_IDS.filter((id) => THEME_PRESETS[id].buttons.style === "filled"))("%s has readable buttons", (id) => {
     const { colors } = THEME_PRESETS[id];
     expect(contrastRatio(colors.buttonText, colors.buttonBackground)).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+describe("every preset is legible wherever its colours land", () => {
+  const vars = (id: (typeof PRESET_IDS)[number]) => themeToStyle(THEME_PRESETS[id]) as unknown as Record<string, string>;
+
+  it.each(PRESET_IDS)("%s: buttons, cards and forms", (id) => {
+    const { colors, background } = THEME_PRESETS[id];
+    const style = vars(id);
+    expect(contrastRatio(style["--fm-button-text"], colors.buttonBackground)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(style["--fm-card-ink"], colors.cardBackground)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(style["--fm-card-muted"], colors.cardBackground)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(style["--fm-card-accent"], colors.cardBackground)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(style["--fm-field-ink"], background.color)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(style["--fm-avatar-ink"], colors.accent)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it.each(PRESET_IDS.filter((id) => THEME_PRESETS[id].background.type === "solid"))("%s: secondary text on the page", (id) => {
+    expect(contrastRatio(vars(id)["--fm-muted"], THEME_PRESETS[id].background.color)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it.each(PRESET_IDS.filter((id) => THEME_PRESETS[id].background.type === "gradient"))("%s: text at both ends of the gradient", (id) => {
+    const { colors, background } = THEME_PRESETS[id];
+    for (const stop of [background.gradientFrom, background.gradientTo]) {
+      expect(contrastRatio(colors.text, stop)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(colors.muted, stop)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  it("repairs a page saved with white text on white cards, and keeps colours that already work", () => {
+    expect(readableOn("#ffffff", "#ffffff")).toBe("#111827");
+    expect(readableOn("#111111", "#000000")).toBe("#ffffff");
+    expect(readableOn("#9f1239", "#ffffff")).toBe("#9f1239");
   });
 });
 
@@ -89,7 +122,7 @@ describe("themeToStyle", () => {
   });
 
   it("builds gradients", () => {
-    expect(style(THEME_PRESETS.gradient)["--fm-bg-image"]).toBe("linear-gradient(135deg, #7657f6, #f472b6)");
+    expect(style(THEME_PRESETS.gradient)["--fm-bg-image"]).toBe("linear-gradient(135deg, #6d4aec, #be185d)");
   });
 
   it("uses a validated image path, with an overlay for legibility", () => {

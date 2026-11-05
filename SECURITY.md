@@ -95,7 +95,7 @@ These are open and will be re-reviewed in the Phase 8 audit.
 1. **CSP includes `'unsafe-inline'` for scripts.** Nonces would make every page dynamic and defeat caching of public profiles. Mitigated by React escaping and no raw user HTML.
 2. **Reserved usernames are an exact-match list.** Substring matching causes false positives on legitimate names, so determined look-alikes are left to moderation (Phase 6).
 3. **Client IP comes from `x-forwarded-for`,** which is only trustworthy behind Vercel. Self-hosting requires reviewing `src/lib/security/client-ip.ts`.
-4. **Uploaded images keep their metadata.** Photos can carry location data in EXIF. The original stays reachable at its public storage URL, even if the optimised copies visitors normally load drop it (not verified). Stripping it on upload needs an image-processing step, due before launch.
+4. **Images uploaded before metadata stripping keep their metadata.** New uploads have EXIF, XMP, comments and text chunks removed by `stripImageMetadata`, and JPEG data after the first end-of-image marker is dropped, with only the rotation kept. GIFs are stored unchanged. Older files aren't rewritten.
 5. **Audit log writes aren't wired up yet.** The append-only table exists, but nothing writes to it, because no admin actions exist so far. Phase 6 must make admin actions and their audit entries atomic.
 6. **Storage isn't cleaned up or capped per user.** Replaced images stay in storage, and uploads are limited by rate rather than total size.
 7. **Consent can be self-asserted through direct signup.** Someone calling the Auth API directly can put consent versions in their signup metadata. They are asserting consent for themselves, so this is low risk, but the record shows only what the client sent.

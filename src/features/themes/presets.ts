@@ -54,7 +54,7 @@ export const THEME_PRESETS: Record<PresetId, Theme> = {
   }),
   modern: preset("modern", {
     background: { color: "#f3f4f6" },
-    colors: { accent: "#7657f6", buttonBackground: "#7657f6", buttonText: "#ffffff" },
+    colors: { muted: "#4b5563", accent: "#7657f6", buttonBackground: "#7657f6", buttonText: "#ffffff" },
     typography: { headingFont: "space_grotesk", bodyFont: "inter" },
     buttons: { shape: "pill", shadow: "medium" },
   }),
@@ -74,18 +74,18 @@ export const THEME_PRESETS: Record<PresetId, Theme> = {
   }),
   light: preset("light", {
     background: { color: "#fffdf8" },
-    colors: { accent: "#20c997", buttonBackground: "#111827", buttonText: "#ffffff", border: "#ece7dc" },
+    colors: { accent: "#0f766e", buttonBackground: "#111827", buttonText: "#ffffff", border: "#ece7dc" },
     typography: { headingFont: "poppins", bodyFont: "poppins" },
     buttons: { shape: "pill" },
   }),
   glass: preset("glass", {
-    background: { type: "gradient", gradientFrom: "#312e81", gradientTo: "#0ea5e9", gradientAngle: 145 },
+    background: { type: "gradient", gradientFrom: "#312e81", gradientTo: "#0369a1", gradientAngle: 145 },
     colors: {
       text: "#ffffff",
       muted: "#dbeafe",
       accent: "#a5f3fc",
       buttonBackground: "#ffffff",
-      buttonText: "#ffffff",
+      buttonText: "#1e1b4b",
       cardBackground: "#ffffff",
       border: "#ffffff",
     },
@@ -94,7 +94,7 @@ export const THEME_PRESETS: Record<PresetId, Theme> = {
     avatar: { ring: true },
   }),
   gradient: preset("gradient", {
-    background: { type: "gradient", gradientFrom: "#7657f6", gradientTo: "#f472b6", gradientAngle: 135 },
+    background: { type: "gradient", gradientFrom: "#6d4aec", gradientTo: "#be185d", gradientAngle: 135 },
     colors: {
       text: "#ffffff",
       muted: "#fdf2f8",

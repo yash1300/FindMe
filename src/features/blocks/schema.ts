@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { mediaPathSchema } from "@/features/media/paths";
+import { isSocialPlatform } from "@/features/social/platforms";
 import { emailAddressSchema, httpUrlSchema, phoneSchema } from "@/lib/urls";
 import { parseSoundCloud, parseSpotify, parseVideo, parseYouTube } from "./embeds";
 
@@ -41,6 +42,8 @@ export const BLOCK_SCHEMAS = {
     thumbnailPath: optionalMedia,
     icon: z.enum(LINK_ICONS).optional(),
     variant: z.enum(BUTTON_VARIANTS).optional(),
+    // Set on buttons made from a social link, which then show that platform's logo.
+    platform: z.string().refine(isSocialPlatform).optional(),
   }),
   featured_link: z.object({
     title: requiredText("a title", 100),

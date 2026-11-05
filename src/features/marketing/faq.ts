@@ -5,7 +5,7 @@ export const FAQ_ITEMS = [
   },
   {
     question: "Is it free?",
-    answer: "Yes. FindMe is free for everyone, with every feature included.",
+    answer: "Yes, completely. Every feature is free for everyone. There are no paid plans or trials, and you don't need a card to sign up.",
   },
   {
     question: "Do I need to know how to code?",
@@ -18,6 +18,10 @@ export const FAQ_ITEMS = [
   {
     question: "Which social platforms can I link to?",
     answer: "Instagram, TikTok, YouTube, Facebook, X, LinkedIn, Pinterest, Snapchat, Twitch, Discord, WhatsApp, Telegram, GitHub, Reddit, Spotify, SoundCloud, Apple Music and Threads, plus email and your website.",
+  },
+  {
+    question: "What happens when I add a social link?",
+    answer: "It appears as an icon near the top of your page and as a full button below. You can rename, restyle, reorder or remove the button whenever you like, under Links.",
   },
   {
     question: "Does FindMe verify my social accounts?",

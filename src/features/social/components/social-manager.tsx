@@ -6,18 +6,20 @@ import { Field } from "@/components/forms/field";
 import { SelectField } from "@/components/forms/select-field";
 import { SortableList } from "@/components/forms/sortable-list";
 import { Button } from "@/components/ui/button";
-import type { OwnerSocialLink } from "@/features/profile/queries";
-import type { ActionResult } from "@/features/profile/result";
-import { deleteSocialLinkAction, reorderSocialLinksAction, saveSocialLinkAction, setSocialVisibilityAction } from "../actions";
+import type { OwnerBlock, OwnerSocialLink } from "@/features/profile/queries";
+import { type ActionResult, OFFLINE_MESSAGE, safely } from "@/features/profile/result";
+import { addSocialButtonsAction, deleteSocialLinkAction, reorderSocialLinksAction, saveSocialLinkAction, setSocialVisibilityAction } from "../actions";
 import { SOCIAL_ICONS } from "../icons";
 import { isSocialPlatform, platformLabel, SOCIAL_PLATFORMS, type SocialPlatformId } from "../platforms";
 
 type Props = {
   initialLinks: OwnerSocialLink[];
   onChange?: (links: OwnerSocialLink[]) => void;
+  /** For a live preview, because adding or removing a link can change the page's buttons too. */
+  onBlocksChange?: (blocks: OwnerBlock[]) => void;
 };
 
-export function SocialManager({ initialLinks, onChange }: Props) {
+export function SocialManager({ initialLinks, onChange, onBlocksChange }: Props) {
   const [links, setLinksState] = useState(initialLinks);
   const used = new Set(links.map((link) => link.platform));
   const available = SOCIAL_PLATFORMS.filter((platform) => !used.has(platform.id));
@@ -25,6 +27,7 @@ export function SocialManager({ initialLinks, onChange }: Props) {
   const [url, setUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<string | undefined>();
+  const [notice, setNotice] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   // A platform that has just been added can't stay selected.
@@ -36,16 +39,33 @@ export function SocialManager({ initialLinks, onChange }: Props) {
     onChange?.(next);
   }
 
-  function optimistic(next: OwnerSocialLink[], commit: () => Promise<ActionResult>) {
+  function optimistic(next: OwnerSocialLink[], commit: () => Promise<ActionResult<{ blocks?: OwnerBlock[] }>>) {
     const previous = links;
     setError(null);
+    setNotice(null);
     setLinks(next);
     startTransition(async () => {
-      const result = await commit().catch((): ActionResult => ({ ok: false, message: "We couldn't reach the server. Your change wasn't saved." }));
+      const result = await commit().catch((): ActionResult<{ blocks?: OwnerBlock[] }> => ({ ok: false, message: OFFLINE_MESSAGE }));
       if (!result.ok) {
         setLinks(previous);
         setError(result.message);
+      } else if (result.blocks) {
+        onBlocksChange?.(result.blocks);
       }
+    });
+  }
+
+  function addMissingButtons() {
+    setError(null);
+    setNotice(null);
+    startTransition(async () => {
+      const result = await safely(() => addSocialButtonsAction());
+      if (!result.ok) {
+        setError(result.message);
+        return;
+      }
+      setNotice(result.message);
+      if (result.blocks) onBlocksChange?.(result.blocks);
     });
   }
 
@@ -54,11 +74,14 @@ export function SocialManager({ initialLinks, onChange }: Props) {
     if (!selected) return;
     setError(null);
     setFieldError(undefined);
+    setNotice(null);
     startTransition(async () => {
-      const result = await saveSocialLinkAction({ platform: selected, url });
+      const result = await safely(() => saveSocialLinkAction({ platform: selected, url }));
       if (result.ok) {
         setLinks([...links, result.link]);
         setUrl("");
+        setNotice(result.notice ?? null);
+        if (result.blocks) onBlocksChange?.(result.blocks);
       } else {
         setFieldError(result.fieldErrors?.url);
         if (!result.fieldErrors?.url) setError(result.message);
@@ -69,6 +92,7 @@ export function SocialManager({ initialLinks, onChange }: Props) {
   return (
     <div className="grid gap-4">
       {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
+      {notice ? <p role="status" className="rounded-lg border bg-muted p-3 text-sm">{notice}</p> : null}
 
       {links.length > 0 ? (
         <SortableList
@@ -142,7 +166,14 @@ export function SocialManager({ initialLinks, onChange }: Props) {
       ) : (
         <p className="text-sm text-muted-foreground">You&apos;ve added every available platform.</p>
       )}
-      <p className="text-xs text-muted-foreground">We check that each link goes to the right site, but not who owns the account.</p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="min-w-0 flex-1 basis-60 text-xs text-muted-foreground">
+          Each link appears as an icon and as a button you can edit under Links. We check that it goes to the right site, but not who owns the account.
+        </p>
+        {links.length > 0 ? (
+          <Button type="button" variant="outline" size="sm" disabled={pending} onClick={addMissingButtons}>Add buttons for my links</Button>
+        ) : null}
+      </div>
     </div>
   );
 }

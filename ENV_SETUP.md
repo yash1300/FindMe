@@ -103,7 +103,18 @@ Any inbox you check. It appears on the Privacy Policy and on the page shown to s
 
 Resend sends notification emails when someone uses a contact form, and provides reliable sending for sign-up emails.
 
-**You need a domain you own** to send to real users. Without one, Resend only lets you send to your own address.
+**Hosted Supabase's built-in email is only for testing.** Its limit is very low, so real people can't reliably sign up or reset a password until you set up a custom sender (SMTP).
+
+**You need a domain you own** to send to real users through Resend. Without one, Resend only lets you send to your own address.
+
+**No domain yet?** As a stopgap, you can send through a Gmail account:
+
+1. Turn on 2-Step Verification for the account, then create an app password at <https://myaccount.google.com/apppasswords>.
+2. In Supabase, open **Authentication → SMTP Settings** (it may be under **Emails**) and turn on custom SMTP.
+3. Enter host `smtp.gmail.com`, port `587`, your full Gmail address as both the username and the sender address, and the app password as the password.
+4. Raise the email rate limit under **Authentication → Rate Limits**, staying within what your Gmail account allows.
+
+Emails will come from that Gmail address, so move to your own domain before launch. The steps below use Resend.
 
 1. Sign up at <https://resend.com>.
 2. Open **Domains → Add Domain** and enter your domain. Add the DNS records it shows at your domain provider, then wait for it to verify.
