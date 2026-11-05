@@ -4,6 +4,7 @@ import { ImagePlus, Loader2, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useId, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { safely } from "@/features/profile/result";
 import { uploadMediaAction } from "../actions";
 import { MEDIA_MAX_BYTES, publicMediaUrl } from "../paths";
 
@@ -31,7 +32,7 @@ export function ImageUpload({ label, value, onChange, hint }: Props) {
     const data = new FormData();
     data.set("file", file);
     startTransition(async () => {
-      const result = await uploadMediaAction(data);
+      const result = await safely(() => uploadMediaAction(data));
       if (result.ok) onChange(result.path);
       else setError(result.message);
     });

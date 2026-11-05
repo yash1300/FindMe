@@ -42,7 +42,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
       <div className="flex flex-1 flex-col">{children}</div>
       <footer className="border-t">
         <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 p-4 text-sm text-muted-foreground sm:p-6">
-          <p>Your entire world. One link.</p>
+          <p>Your entire world. One link. Free for everyone.</p>
           <nav aria-label="Footer" className="flex flex-wrap gap-4">
             {FOOTER.map((item) => (
               <Link key={item.href} href={item.href} className="hover:text-foreground">

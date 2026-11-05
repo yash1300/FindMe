@@ -1,4 +1,4 @@
-import { BarChart3, GripVertical, LayoutDashboard, Link2, Palette, QrCode, Share2, Sparkles, Store, UserRound, Video, Wand2 } from "lucide-react";
+import { BadgeCheck, BarChart3, Check, GripVertical, LayoutDashboard, Link2, Palette, QrCode, Share2, Sparkles, Store, UserRound, Video, Wand2 } from "lucide-react";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { ThemeShowcase } from "@/features/marketing/components/theme-showcase";
@@ -17,6 +17,15 @@ const SHOWCASE = [
   { icon: Video, title: "Video and music", text: "Embed YouTube, Vimeo, Spotify and SoundCloud directly on your page." },
   { icon: Store, title: "Products and services", text: "Show what you sell and send people straight to where they can buy it." },
   { icon: UserRound, title: "Ways to reach you", text: "Add contact details, a contact form or a newsletter signup." },
+];
+
+const FREE_INCLUDES = [
+  "All 10 themes and full customisation",
+  "Every kind of block, from links to video",
+  "Analytics for views and clicks",
+  "QR codes and sharing",
+  "Contact forms and newsletter signups",
+  "More than one page on your account",
 ];
 
 const CUSTOMIZE = ["10 starting themes", "Solid, gradient or image backgrounds", "8 typefaces", "Button styles, shapes and shadows", "Layout, spacing and width", "Picture shapes and entrance animations"];
@@ -42,6 +51,10 @@ export default function HomePage() {
     <main>
       <section className="mx-auto grid w-full max-w-6xl items-center gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:py-20">
         <div className="grid gap-6">
+          <p className="inline-flex w-fit items-center gap-2 rounded-full border bg-card px-3 py-1 text-sm font-medium">
+            <BadgeCheck className="size-4 text-brand-violet" aria-hidden />
+            Completely free for everyone
+          </p>
           <h1 className="max-w-3xl text-5xl font-semibold leading-[1.05] tracking-tight sm:text-7xl">
             Your entire world. <span className="block text-brand-violet">One link.</span>
           </h1>
@@ -52,6 +65,7 @@ export default function HomePage() {
             <Link href="/register" className={cn(buttonVariants({ size: "lg" }))}>Create your free page</Link>
             <Link href="/themes" className={cn(buttonVariants({ size: "lg", variant: "outline" }))}>Explore examples</Link>
           </div>
+          <p className="text-sm text-muted-foreground">Every feature included. No card, no trial, no paid plans.</p>
         </div>
         <ThemeShowcase />
       </section>
@@ -71,7 +85,25 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-16 sm:px-6">
+      <section aria-labelledby="free-heading" className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6">
+        <div className="grid gap-8 rounded-2xl border bg-card p-6 sm:p-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          <div className="grid content-start gap-4">
+            <h2 id="free-heading" className="text-3xl font-semibold tracking-tight">Completely free. Everything included.</h2>
+            <p className="text-muted-foreground">There&apos;s nothing to upgrade to. Everyone gets the same FindMe, with every feature, at no cost.</p>
+            <Link href="/register" className={cn(buttonVariants({ size: "lg" }), "justify-self-start")}>Create your free page</Link>
+          </div>
+          <ul className="grid content-start gap-3 sm:grid-cols-2">
+            {FREE_INCLUDES.map((item) => (
+              <li key={item} className="flex items-start gap-2 text-sm">
+                <Check className="mt-0.5 size-4 shrink-0 text-brand-violet" aria-hidden />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section className="mx-auto grid w-full max-w-6xl gap-8 px-4 pb-16 sm:px-6">
         <SectionHeading title="More than a list of links" text="Build your page from blocks, and arrange them however you like." />
         <div className="grid gap-4 sm:grid-cols-2">
           {SHOWCASE.map(({ icon: Icon, title, text }) => (
@@ -154,6 +186,7 @@ export default function HomePage() {
 
       <section className="mx-auto grid w-full max-w-6xl justify-items-center gap-5 px-4 py-20 text-center sm:px-6">
         <h2 className="text-4xl font-semibold tracking-tight">Ready to claim your link?</h2>
+        <p className="text-muted-foreground">It&apos;s free for everyone, and it only takes a few minutes.</p>
         <Link href="/register" className={cn(buttonVariants({ size: "lg" }))}>Create your free page</Link>
       </section>
     </main>

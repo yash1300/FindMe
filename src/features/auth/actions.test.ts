@@ -5,6 +5,7 @@ import { RECOVERY_COOKIE } from "./constants";
 const auth = {
   signUp: vi.fn(),
   signInWithPassword: vi.fn(),
+  signInWithOAuth: vi.fn(),
   resetPasswordForEmail: vi.fn(),
   resend: vi.fn(),
   getUser: vi.fn(),
@@ -66,6 +67,15 @@ beforeEach(() => {
   rpc.mockResolvedValue({ data: true, error: null });
 });
 
+describe("signInWithGoogleAction", () => {
+  it("always lets the person choose an account, so logging out really ends the session", async () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://app.example.test");
+    auth.signInWithOAuth.mockResolvedValue({ data: { url: "https://accounts.google.com/o" }, error: null });
+    await expect(actions.signInWithGoogleAction(new FormData())).rejects.toBeInstanceOf(RedirectSignal);
+    expect(auth.signInWithOAuth.mock.calls[0][0].options.queryParams).toEqual({ prompt: "select_account" });
+  });
+});
+
 describe("registerAction", () => {
   it("rejects invalid input without calling Supabase", async () => {
     const result = await actions.registerAction(IDLE_STATE, form({ ...registration, email: "nope", consent: "" }));
@@ -108,6 +118,13 @@ describe("registerAction", () => {
     expect(result.status).toBe("error");
     expect(result.fieldErrors?.email).toMatch(/different one/);
     expect(result.values?.email).toBe(registration.email);
+  });
+
+  it("explains when the sending limit has been reached, instead of claiming an email was sent", async () => {
+    auth.signUp.mockResolvedValue({ data: {}, error: { code: "over_email_send_rate_limit", status: 429 } });
+    const result = await actions.registerAction(IDLE_STATE, form(registration));
+    expect(result.status).toBe("error");
+    expect(result.message).toMatch(/can't send any more confirmation emails/);
   });
 
   it("rejects a taken username before signing up", async () => {

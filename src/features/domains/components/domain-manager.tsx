@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Field } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
+import { safely } from "@/features/profile/result";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { addDomainAction, removeDomainAction, verifyDomainAction } from "../actions";
 import { verificationRecordName } from "../host";
@@ -39,7 +40,7 @@ export function DomainManager({ domains }: { domains: DomainRow[] }) {
     setFieldError(undefined);
     setNotice(null);
     startTransition(async () => {
-      const result = await addDomainAction({ hostname });
+      const result = await safely(() => addDomainAction({ hostname }));
       if (result.ok) {
         setHostname("");
         router.refresh();
@@ -80,8 +81,8 @@ export function DomainManager({ domains }: { domains: DomainRow[] }) {
                     disabled={pending}
                     onClick={() =>
                       startTransition(async () => {
-                        const result = await verifyDomainAction(domain.id);
-                        setNotice(result.ok ? result.message : result.message);
+                        const result = await safely(() => verifyDomainAction(domain.id));
+                        setNotice(result.message);
                         router.refresh();
                       })
                     }
@@ -97,7 +98,8 @@ export function DomainManager({ domains }: { domains: DomainRow[] }) {
                   onClick={() => {
                     if (!window.confirm(`Remove ${domain.hostname}?`)) return;
                     startTransition(async () => {
-                      await removeDomainAction(domain.id);
+                      const result = await safely(() => removeDomainAction(domain.id));
+                      if (!result.ok) setNotice(result.message);
                       router.refresh();
                     });
                   }}

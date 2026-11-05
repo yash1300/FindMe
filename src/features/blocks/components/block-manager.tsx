@@ -6,7 +6,7 @@ import { SortableList } from "@/components/forms/sortable-list";
 import { Button } from "@/components/ui/button";
 import { PreviewFrame } from "@/features/profile/components/preview-frame";
 import type { OwnerBlock, OwnerSocialLink } from "@/features/profile/queries";
-import type { ActionResult } from "@/features/profile/result";
+import { type ActionResult, safely } from "@/features/profile/result";
 import { toViewData } from "@/features/profile/to-view-data";
 import { deleteBlockAction, duplicateBlockAction, reorderBlocksAction, setBlockVisibilityAction } from "../actions";
 import { BLOCK_DEFINITIONS, BLOCK_GROUPS } from "../definitions";
@@ -93,7 +93,7 @@ export function BlockManager({ profile, initialBlocks, socialLinks, startAdding 
   function duplicate(id: string) {
     setError(null);
     startTransition(async () => {
-      const result = await duplicateBlockAction(id);
+      const result = await safely(() => duplicateBlockAction(id));
       if (!result.ok) {
         setError(result.message);
         return;

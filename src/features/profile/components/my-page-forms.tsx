@@ -10,6 +10,7 @@ import { ImageUpload } from "@/features/media/components/image-upload";
 import { UsernameField } from "@/features/usernames/components/username-field";
 import { changeUsernameAction, setPublishStatusAction, updateProfileDetailsAction } from "../actions";
 import { CREATOR_CATEGORIES } from "../categories";
+import { safely } from "../result";
 
 type Status = "draft" | "published" | "unpublished" | "suspended";
 
@@ -29,7 +30,7 @@ export function PublishControls({ initialStatus, username, baseUrl }: { initialS
   function change(next: "published" | "unpublished") {
     setError(null);
     startTransition(async () => {
-      const result = await setPublishStatusAction(next);
+      const result = await safely(() => setPublishStatusAction(next));
       if (result.ok) setStatus(result.status as Status);
       else setError(result.message);
     });
@@ -70,7 +71,7 @@ export function UsernameForm({ username, baseUrl }: { username: string; baseUrl:
     setError(undefined);
     setSaved(false);
     startTransition(async () => {
-      const result = await changeUsernameAction({ username: String(formData.get("username") ?? "") });
+      const result = await safely(() => changeUsernameAction({ username: String(formData.get("username") ?? "") }));
       if (result.ok) {
         setCurrent(result.username);
         setSaved(true);
@@ -125,7 +126,7 @@ export function ProfileDetailsForm({ initial }: DetailsProps) {
     setErrors({});
     setMessage(null);
     startTransition(async () => {
-      const result = await updateProfileDetailsAction({ ...values, expectedVersion: version });
+      const result = await safely(() => updateProfileDetailsAction({ ...values, expectedVersion: version }));
       if (result.ok) {
         setVersion(result.version);
         setMessage({ type: "ok", text: "Saved." });

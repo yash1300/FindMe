@@ -63,7 +63,7 @@
   border-radius: var(--fm-avatar-radius);
   overflow: hidden;
   background: var(--fm-accent);
-  color: var(--fm-bg);
+  color: var(--fm-avatar-ink);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -126,7 +126,7 @@
 }
 .fm-button-body { flex: 1; min-width: 0; text-align: center; overflow-wrap: anywhere; }
 .fm-page[data-align="left"] .fm-button-body { text-align: left; }
-.fm-button-description { display: block; font-size: 0.8125em; font-weight: 400; opacity: 0.8; }
+.fm-button-description { display: block; font-size: 0.8125em; font-weight: 400; }
 .fm-button-icon { width: 1.125rem; height: 1.125rem; flex-shrink: 0; }
 .fm-button-thumb { position: relative; width: 2.25rem; height: 2.25rem; flex-shrink: 0; overflow: hidden; border-radius: var(--fm-field-radius); }
 .fm-button-spacer { width: 1.125rem; flex-shrink: 0; }
@@ -150,11 +150,15 @@
   border-radius: var(--fm-card-radius);
   border: 1px solid var(--fm-border);
   background: var(--fm-card-bg);
-  color: var(--fm-card-ink, var(--fm-text));
+  color: var(--fm-card-ink);
   overflow: hidden;
   text-decoration: none;
 }
 .fm-page[data-surface="glass"] .fm-card, .fm-page[data-glass-buttons="true"] .fm-card {
+  /* The card is see-through here, so its text sits on the page's background. */
+  --fm-card-ink: var(--fm-text);
+  --fm-card-muted: var(--fm-muted);
+  --fm-card-accent: var(--fm-accent);
   background: rgb(255 255 255 / 0.14);
   border-color: rgb(255 255 255 / 0.3);
   backdrop-filter: blur(12px);
@@ -162,8 +166,8 @@
 .fm-card-media { position: relative; width: 100%; aspect-ratio: 16 / 9; }
 .fm-card-body { padding: 1rem 1.125rem; display: flex; flex-direction: column; gap: 0.25rem; }
 .fm-card-title { font-family: var(--fm-heading-font), system-ui, sans-serif; font-weight: 700; font-size: 1.0625em; overflow-wrap: anywhere; }
-.fm-card-text { color: var(--fm-muted); font-size: 0.9375em; overflow-wrap: anywhere; }
-.fm-price { font-weight: 700; color: var(--fm-accent); }
+.fm-card-text { color: var(--fm-card-muted); font-size: 0.9375em; overflow-wrap: anywhere; }
+.fm-price { font-weight: 700; color: var(--fm-card-accent); }
 
 /* Content */
 .fm-heading {
@@ -191,7 +195,7 @@
 }
 .fm-contact-list { display: flex; flex-direction: column; gap: 0.5rem; }
 .fm-contact-row { display: flex; align-items: flex-start; gap: 0.5rem; color: inherit; overflow-wrap: anywhere; }
-.fm-contact-row svg { width: 1.125rem; height: 1.125rem; margin-top: 0.15em; flex-shrink: 0; color: var(--fm-accent); }
+.fm-contact-row svg { width: 1.125rem; height: 1.125rem; margin-top: 0.15em; flex-shrink: 0; color: var(--fm-card-accent); }
 
 .fm-social { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: var(--fm-items); }
 .fm-social a {
@@ -231,14 +235,14 @@
   width: 100%;
   padding: 0.625rem 0.75rem;
   border-radius: var(--fm-field-radius);
-  border: 1px solid var(--fm-border);
+  border: 1px solid color-mix(in srgb, var(--fm-field-ink) 35%, transparent);
   background: var(--fm-bg);
-  color: var(--fm-text);
+  color: var(--fm-field-ink);
   font: inherit;
 }
-.fm-page[data-surface="glass"] .fm-field, .fm-page[data-glass-buttons="true"] .fm-field { background: rgb(255 255 255 / 0.9); color: #111827; }
+.fm-page[data-surface="glass"] .fm-field, .fm-page[data-glass-buttons="true"] .fm-field { background: rgb(255 255 255 / 0.9); color: #111827; border-color: rgb(17 24 39 / 0.35); }
 .fm-field-label { display: block; font-size: 0.875em; font-weight: 500; margin-bottom: 0.25rem; }
-.fm-consent { display: flex; gap: 0.5rem; align-items: flex-start; font-size: 0.8125em; color: var(--fm-muted); }
+.fm-consent { display: flex; gap: 0.5rem; align-items: flex-start; font-size: 0.8125em; color: var(--fm-card-muted); }
 .fm-consent input { margin-top: 0.2em; flex-shrink: 0; accent-color: var(--fm-accent); }
 .fm-form-message { font-size: 0.875em; font-weight: 500; }
 .fm-honeypot { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }

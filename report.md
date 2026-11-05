@@ -2,7 +2,7 @@
 
 A plain summary of where each phase stands. The detailed checklist is in [PROJECT_PLAN.md](PROJECT_PLAN.md), and technical notes for whoever continues the work are in [HANDOFF.md](HANDOFF.md).
 
-**Last updated:** 2026-11-04
+**Last updated:** 2026-11-05
 
 ## At a glance
 
@@ -19,18 +19,25 @@ A plain summary of where each phase stands. The detailed checklist is in [PROJEC
 
 ## Live site status
 
-**The live site is working, but real sign-up emails are still unproven.** Tested on 2026-11-04 with temporary accounts, since removed.
+**The live site works, but new people can't reliably sign up until a custom email sender is set up.** On 2026-11-05, hosted Supabase refused a sign-up to an outside address with `over_email_send_rate_limit`. Its built-in sender has a very low limit, and is meant for testing rather than the public. Password reset emails depend on the same sender. See Step 4 of [ENV_SETUP.md](ENV_SETUP.md).
 
 ### Still to check by hand
 
-1. Sign up with a different real email address, and open the confirmation link. Supabase's built-in email sender may only deliver to the project's own team members, which would block the public from signing up.
-2. Finish a real Google sign-in. The button now reaches Google's sign-in page.
-3. After 22:00 UTC, check Vercel's Logs tab to see that the cleanup job ran.
+1. Set up the email sender, then sign up with a different real address and open the confirmation link.
+2. Test Forgot password from its email.
+3. Check Vercel's Logs tab to see that the daily cleanup job ran.
 
-### Fixes on the `phase-6-fixes` branch, not live until merged
+### Fixes on the `improvements` branch, not live until merged
 
-- **Speed:** the site's server ran in the US (`iad1`) and the database is in Tokyo, so `vercel.json` now moves the server to Tokyo (`hnd1`). The health check took about a second from India before this change. The improvement hasn't been measured yet.
-- **Sign-up message:** an address Supabase rejects now asks for a different email, instead of showing "We can't process that right now".
+- **Google sign-in:** Google now always asks which account to use, so logging out no longer leads to a silent sign-in.
+- **Sign-up screens:** the confirmation screen explains spam folders and what happens with an address that already has an account, and the form says when the email limit has been reached. A failed login also points people who signed up with Google to the right button.
+- **Social links:** each one now also adds a full button that can be edited, and "Add buttons for my links" covers links added earlier. Hiding or removing a link does the same to its button.
+- **Landing page:** it now says clearly that FindMe is free for everyone, in the hero, its own section, the closing section and the footer.
+- **Unreadable themes:** Glass had blank form buttons, and Gradient had white text on white cards. Colours are now checked as the page is drawn, which also repairs pages already saved.
+- **Dropped connections:** saves that lose their connection now show a message instead of stalling silently.
+- **Photo privacy:** location and other hidden data is removed from uploads, keeping the photo's rotation. Images uploaded earlier aren't changed.
+
+Moving the server to Tokyo is already live: the health check took 0.27 to 0.95 seconds in five checks, compared with about a second before.
 
 ### Unexplained
 
@@ -73,19 +80,18 @@ Not built, because FindMe is free for everyone. The Pricing page and billing lin
 
 ## Test results
 
-Run against a local copy of the database, in smaller groups because of limited memory.
+Latest results are for the `improvements` branch, run against a local copy of the database, in smaller groups because of limited memory.
 
 | Check | Result |
 | --- | --- |
 | Lint and type check | Pass |
-| Unit and database tests | 601 passed, plus 15 payment to-dos |
-| Browser: sign-in and accounts | 24 of 24 |
-| Browser: security attacks | 8 of 8 |
-| Browser: analytics and admin access | 7 of 7, on the Phase 4 code |
+| Unit and database tests | 645 passed, plus 15 payment to-dos |
+| Browser: sign-in, accounts, security attacks and this round's fixes | 37 of 37 |
 | Browser: page builder and marketing | 26 of 26 |
-| Browser: Phase 6 and dark mode | 16 of 16 |
+| Browser: analytics, admin, Phase 6 and dark mode | 23 of 23 |
+| Every page on phone and desktop, in light and dark, plus all 10 themes (130 page views) | No sideways scrolling or browser errors. The 48 serious readability failures, all on public page styles, were fixed, and all 10 themes re-checked clean |
 
-All 81 browser tests have passed, but not in one single run, and the analytics group wasn't re-run after the Phase 6 changes. Please run the full suite once on a machine with more free memory.
+The dashboard, marketing and admin screens had no serious accessibility failures of their own, in an automated check. That doesn't replace testing with real assistive technology, which is still part of Phase 8.
 
 **Live site walkthrough (2026-11-04):** 31 checks covering pages, onboarding, the page builder, analytics, leads, multiple pages, domain setup, reports, admin screens, data export and account deletion. All passed, though not in one run: account deletion passed in the previous run and was left out of the last one, and the admin screens passed in a separate run. The walkthrough left one permanent `account.deleted` audit entry, which shows only an ID.
 
@@ -95,10 +101,9 @@ All 81 browser tests have passed, but not in one single run, and the analytics g
 
 - Lawyer review of the Privacy Policy and Terms. Both are still marked as drafts
 - Whether `findme.com` is obtainable, and a trademark check on the name
-- Removing location data from uploaded photos
 - Error monitoring, and performance and accessibility testing (Phase 8)
 - Resend setup, if you want notification emails
-- Custom email sending for sign-ups, if Supabase's built-in sender blocks outside addresses or its low hourly limit gets in the way
+- A custom email sender for sign-ups and password resets, ideally from your own domain
 - Testing a custom domain with real DNS and HTTPS
 
 Known gaps are listed in [SECURITY.md](SECURITY.md).

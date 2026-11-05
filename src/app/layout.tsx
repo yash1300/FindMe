@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 const THEME_SCRIPT = `try{var t=localStorage.getItem("fm-theme");document.documentElement.classList.toggle("dark",t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches)}catch(e){}`;
 
 const description =
-  "Bring your links, content, socials, and brand together in one beautiful place. Create your FindMe page in minutes.";
+  "Bring your links, content, socials, and brand together in one beautiful place. Completely free for everyone. Create your FindMe page in minutes.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(getAppUrl()),

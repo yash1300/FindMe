@@ -120,7 +120,9 @@ test.describe("onboarding wizard", () => {
     await page.goto(`/${identity.username}`);
     await expect(page.getByRole("heading", { name: "Wizard Person", level: 1 })).toBeVisible();
     await expect(page.getByText("Hello from the wizard")).toBeVisible();
-    await expect(page.getByRole("link", { name: "GitHub" })).toHaveAttribute("href", "https://github.com/wizard");
+    await expect(page.getByRole("navigation", { name: "Social links" }).getByRole("link", { name: "GitHub" })).toHaveAttribute("href", "https://github.com/wizard");
+    // Every social link gets a full button as well as an icon.
+    await expect(page.locator(".fm-button", { hasText: "GitHub" })).toBeVisible();
     await expect(page.locator(".fm-page")).toHaveCSS("background-color", "rgb(11, 15, 25)");
 
     // Finished people aren't sent through it again.

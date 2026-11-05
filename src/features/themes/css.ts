@@ -44,15 +44,23 @@ function backgroundImage(theme: Theme): string {
 /** Turns a theme into CSS variables. All values come from validated enums, hex colours or numbers. */
 export function themeToStyle(theme: Theme): CSSProperties {
   const { colors, buttons, layout, avatar, cover, typography, background } = theme;
+  // A page's chosen colours can't always work everywhere: white text suits a gradient, but not the
+  // white card sitting on it. These keep each pairing legible, including on pages already saved.
+  const pageMuted = background.type === "solid" ? readableOn(colors.muted, background.color) : colors.muted;
   return {
     "--fm-bg": background.color,
     "--fm-bg-image": backgroundImage(theme),
     "--fm-text": colors.text,
-    "--fm-muted": colors.muted,
+    "--fm-muted": pageMuted,
     "--fm-accent": colors.accent,
     "--fm-button-bg": colors.buttonBackground,
-    "--fm-button-text": colors.buttonText,
+    "--fm-button-text": readableOn(colors.buttonText, colors.buttonBackground),
     "--fm-card-bg": colors.cardBackground,
+    "--fm-card-ink": readableOn(colors.text, colors.cardBackground),
+    "--fm-card-muted": readableOn(colors.muted, colors.cardBackground),
+    "--fm-card-accent": readableOn(colors.accent, colors.cardBackground),
+    "--fm-field-ink": readableOn(colors.text, background.color),
+    "--fm-avatar-ink": readableOn(background.color, colors.accent),
     "--fm-border": colors.border,
     "--fm-shadow-color": colors.border,
     "--fm-heading-font": themeFontVariable(typography.headingFont),
@@ -82,4 +90,10 @@ export function contrastRatio(foreground: string, background: string): number {
   const a = luminance(foreground);
   const b = luminance(background);
   return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+}
+
+/** The colour as chosen if it can be read on this background, otherwise dark or light ink, whichever reads best. */
+export function readableOn(color: string, background: string): string {
+  if (contrastRatio(color, background) >= 4.5) return color;
+  return contrastRatio("#111827", background) >= contrastRatio("#ffffff", background) ? "#111827" : "#ffffff";
 }

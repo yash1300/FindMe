@@ -7,6 +7,7 @@ import { logger } from "@/lib/logger";
 import { RATE_LIMITS } from "@/lib/security/rate-limit";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { MEDIA_BUCKET, MEDIA_MAX_BYTES, sniffImage } from "./paths";
+import { stripImageMetadata } from "./strip-metadata";
 
 /** Stores an image under the user's own folder, after checking what the file really is. */
 export async function uploadMediaAction(formData: FormData): Promise<ActionResult<{ path: string }>> {
@@ -23,9 +24,12 @@ export async function uploadMediaAction(formData: FormData): Promise<ActionResul
   const image = sniffImage(bytes);
   if (!image) return failure("Use a PNG, JPEG, WebP or GIF image.");
 
+  const clean = stripImageMetadata(bytes, image.extension);
+  if (!clean) return failure("We couldn't read that image. Please try a different one.");
+
   const path = `${user.id}/${crypto.randomUUID()}.${image.extension}`;
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.storage.from(MEDIA_BUCKET).upload(path, bytes, {
+  const { error } = await supabase.storage.from(MEDIA_BUCKET).upload(path, clean, {
     // From the sniffed bytes, never from what the browser claimed.
     contentType: image.contentType,
     cacheControl: "31536000",

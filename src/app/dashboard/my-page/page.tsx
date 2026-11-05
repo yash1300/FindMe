@@ -50,7 +50,7 @@ export default async function MyPagePage() {
       <Card>
         <CardHeader>
           <CardTitle>Social links</CardTitle>
-          <CardDescription>Drag to reorder. Hide a link to keep it without showing it.</CardDescription>
+          <CardDescription>Drag to reorder. Hiding or removing a link does the same to its button.</CardDescription>
         </CardHeader>
         <CardContent>
           <SocialManager initialLinks={socialLinks} />

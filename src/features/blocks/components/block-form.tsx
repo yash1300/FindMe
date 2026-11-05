@@ -7,7 +7,7 @@ import { TextareaField } from "@/components/forms/textarea-field";
 import { Button } from "@/components/ui/button";
 import { ImageUpload } from "@/features/media/components/image-upload";
 import type { OwnerBlock } from "@/features/profile/queries";
-import type { ActionResult } from "@/features/profile/result";
+import { type ActionResult, safely } from "@/features/profile/result";
 import { createBlockAction, updateBlockAction } from "../actions";
 import { BLOCK_DEFINITIONS, type FieldDefinition } from "../definitions";
 import { isoToLocalInput, localInputToIso } from "../schedule";
@@ -55,9 +55,9 @@ export function BlockForm({ type, block, onSaved, onCancel }: Props) {
         config: toConfig(values),
         schedule: { startsAt: localInputToIso(startsAt), endsAt: localInputToIso(endsAt) },
       };
-      const result: ActionResult<{ block: OwnerBlock }> = block
-        ? await updateBlockAction({ id: block.id, ...input })
-        : await createBlockAction(input);
+      const result = await safely<ActionResult<{ block: OwnerBlock }>>(() =>
+        block ? updateBlockAction({ id: block.id, ...input }) : createBlockAction(input),
+      );
 
       if (result.ok) {
         onSaved(result.block);

@@ -3,7 +3,7 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { PRIVACY_VERSION, TERMS_VERSION } from "@/features/legal/versions";
-import { getAppUrl, isSupabaseConfigured } from "@/lib/env";
+import { getAppUrl, isGoogleAuthEnabled, isSupabaseConfigured } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import { getClientIp } from "@/lib/security/client-ip";
 import { checkRateLimits, RATE_LIMITS, rateLimitKey, type RateLimitRule } from "@/lib/security/rate-limit";
@@ -17,7 +17,7 @@ import {
   UNAVAILABLE_MESSAGE,
   validationError,
 } from "./action-state";
-import { RECOVERY_COOKIE } from "./constants";
+import { ACTIVE_PROFILE_COOKIE, RECOVERY_COOKIE } from "./constants";
 import { emailOnlySchema, loginSchema, registerSchema, resetPasswordSchema } from "./schema";
 
 async function clientIp(): Promise<string> {
@@ -103,7 +103,11 @@ export async function registerAction(_prev: ActionState, formData: FormData): Pr
     if (error.code === "user_already_exists" || error.code === "email_exists") {
       return { status: "success", code: "check_email", email };
     }
-    if (error.code === "over_email_send_rate_limit" || error.status === 429) {
+    if (error.code === "over_email_send_rate_limit") {
+      logger.error("auth.register.email_limit_reached", { code: error.code });
+      return formError("We can't send any more confirmation emails right now. Please try again in about an hour.", values);
+    }
+    if (error.status === 429) {
       return formError("Too many attempts. Please try again later.", values);
     }
     logger.error("auth.register.failed", { code: error.code, status: error.status });
@@ -153,7 +157,9 @@ export async function loginAction(_prev: ActionState, formData: FormData): Promi
       logger.error("auth.login.failed", { code: error.code, status: error.status });
       return formError(UNAVAILABLE_MESSAGE, values);
     }
-    return formError("Incorrect email or password.", values);
+    // Shown for every failed login, so it says nothing about whether this address has an account.
+    const hint = isGoogleAuthEnabled() ? " If you signed up with Google, use Continue with Google." : "";
+    return formError(`Incorrect email or password.${hint}`, values);
   }
 
   redirect(safeRedirectPath(raw.next));
@@ -169,7 +175,12 @@ export async function signInWithGoogleAction(formData: FormData): Promise<void> 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: callbackUrl(next) },
+    options: {
+      redirectTo: callbackUrl(next),
+      // Without this, someone signed in to Google is logged straight back in after logging out,
+      // with no chance to choose another account. Important on shared devices.
+      queryParams: { prompt: "select_account" },
+    },
   });
 
   if (error || !data.url) {
@@ -185,6 +196,8 @@ export async function signOutAction(): Promise<void> {
     const { error } = await supabase.auth.signOut();
     if (error) logger.warn("auth.signout.failed", { code: error.code, status: error.status });
   }
+  // Which page was being edited belongs to this person, not to the browser.
+  (await cookies()).delete(ACTIVE_PROFILE_COOKIE);
   redirect("/");
 }
 

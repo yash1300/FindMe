@@ -2,7 +2,7 @@
 
 Read this first, then [CLAUDE.md](CLAUDE.md) (the spec) and [PROJECT_PLAN.md](PROJECT_PLAN.md) (the checklist).
 
-**Last updated:** 2026-11-04. **Current position:** Phases 1–3 are merged to `main`. Phases 4 and 6 are verified locally on the `phase-6` branch, which includes `phase-4`. Phase 5 isn't being built, because FindMe is free. See [report.md](report.md), and keep it updated after each phase, as the user asked.
+**Last updated:** 2026-11-05. **Current position:** Phases 1–4 and 6 are merged to `main` and live. The `improvements` branch holds the fixes from the user's first live review, and needs merging. Sign-up and reset emails need a custom SMTP sender. Phase 5 isn't being built, because FindMe is free. See [report.md](report.md), and keep it updated after each phase, as the user asked.
 
 ## State of the project
 

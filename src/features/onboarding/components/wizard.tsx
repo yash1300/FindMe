@@ -11,6 +11,7 @@ import { changeUsernameAction, completeWizardAction, saveThemeAction, updateProf
 import { CREATOR_CATEGORIES } from "@/features/profile/categories";
 import { PreviewFrame } from "@/features/profile/components/preview-frame";
 import type { OwnerBlock, OwnerSocialLink } from "@/features/profile/queries";
+import { OFFLINE_MESSAGE, safely } from "@/features/profile/result";
 import { toViewData } from "@/features/profile/to-view-data";
 import { SocialManager } from "@/features/social/components/social-manager";
 import { PresetPicker } from "@/features/themes/components/theme-controls";
@@ -48,7 +49,8 @@ const STEPS = [
   { id: "publish", title: "Ready to go live?", optional: false },
 ] as const;
 
-export function OnboardingWizard({ baseUrl, profile, theme: initialTheme, blocks, socialLinks: initialLinks }: Props) {
+export function OnboardingWizard({ baseUrl, profile, theme: initialTheme, blocks: initialBlocks, socialLinks: initialLinks }: Props) {
+  const [blocks, setBlocks] = useState(initialBlocks);
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
   const [username, setUsername] = useState(profile.username);
@@ -119,14 +121,18 @@ export function OnboardingWizard({ baseUrl, profile, theme: initialTheme, blocks
     setError(null);
     setFieldError(undefined);
     startTransition(async () => {
-      if (await saveStep(formUsername)) setStepIndex((index) => index + 1);
+      try {
+        if (await saveStep(formUsername)) setStepIndex((index) => index + 1);
+      } catch {
+        setError(OFFLINE_MESSAGE);
+      }
     });
   }
 
   function finish(publish: boolean) {
     setError(null);
     startTransition(async () => {
-      const result = await completeWizardAction({ publish });
+      const result = await safely(() => completeWizardAction({ publish }));
       if (result.ok) router.push("/dashboard");
       else setError(result.message);
     });
@@ -183,7 +189,7 @@ export function OnboardingWizard({ baseUrl, profile, theme: initialTheme, blocks
         />
       ) : null}
 
-      {step.id === "social" ? <SocialManager initialLinks={links} onChange={setLinks} /> : null}
+      {step.id === "social" ? <SocialManager initialLinks={links} onChange={setLinks} onBlocksChange={setBlocks} /> : null}
 
       {step.id === "theme" ? <PresetPicker current={theme.preset} onChoose={(preset) => setTheme(THEME_PRESETS[preset])} /> : null}
 

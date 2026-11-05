@@ -11,7 +11,7 @@ export default function RegisterPage() {
     <div className="grid gap-6">
       <div className="grid gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">Create your FindMe page</h1>
-        <p className="text-muted-foreground">Claim your link. It only takes a few minutes.</p>
+        <p className="text-muted-foreground">It&apos;s completely free, and only takes a few minutes.</p>
       </div>
       <GoogleSignIn next="/onboarding" />
       <RegisterForm baseUrl={getAppUrl()} />
