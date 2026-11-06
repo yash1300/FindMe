@@ -134,3 +134,53 @@ export function formatDay(day: string, style: "short" | "long" = "short"): strin
     timeZone: "UTC",
   }).format(new Date(`${day}T00:00:00Z`));
 }
+
+/** The period of the same length just before this one, for comparison. */
+export function previousRange({ from, to }: Pick<DateRange, "from" | "to">): Pick<DateRange, "from" | "to"> {
+  const length = daysBetween(from, to) + 1;
+  return { from: addDays(from, -length), to: addDays(from, -1) };
+}
+
+/** Percentage change, or null when there's nothing earlier to compare with. */
+export function percentChange(current: number, previous: number): number | null {
+  if (previous <= 0) return null;
+  return ((current - previous) / previous) * 100;
+}
+
+const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
+
+/**
+ * Average views on each day of the week, busiest first. Only meaningful over at least two
+ * weeks, so shorter ranges return nothing rather than a misleading pattern.
+ */
+export function weekdayAverages(series: SeriesPoint[]): { weekday: string; views: number }[] {
+  if (series.length < 14) return [];
+  const sums = WEEKDAYS.map(() => ({ views: 0, days: 0 }));
+  for (const point of series) {
+    // getUTCDay counts from Sunday; this list starts on Monday, as Indian calendars do.
+    const index = (new Date(`${point.day}T00:00:00Z`).getUTCDay() + 6) % 7;
+    sums[index].views += point.views;
+    sums[index].days += 1;
+  }
+  return WEEKDAYS.map((weekday, index) => ({ weekday, views: sums[index].days ? Math.round(sums[index].views / sums[index].days) : 0 }))
+    .sort((a, b) => b.views - a.views);
+}
+
+/** A cell that a spreadsheet won't run as a formula, quoted when it needs to be. */
+function csvCell(value: string | number): string {
+  let text = String(value);
+  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
+  return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+}
+
+/** Daily figures as CSV, one row per day and measure, with links named rather than numbered. */
+export function analyticsCsv(rows: DailyRow[], blockName: (id: string) => string): string {
+  const lines = [["date", "measure", "value", "views", "visitors", "clicks"].join(",")];
+  const sorted = [...rows].sort((a, b) => a.day.localeCompare(b.day) || a.dimension.localeCompare(b.dimension) || b.views - a.views);
+  for (const row of sorted) {
+    const value = row.dimension === "block" ? blockName(row.dimension_value) : row.dimension === "total" ? "" : row.dimension_value;
+    const measure = row.dimension === "block" ? "link" : row.dimension;
+    lines.push([row.day, measure, value, row.views, row.uniques, row.clicks].map(csvCell).join(","));
+  }
+  return `${lines.join("\r\n")}\r\n`;
+}

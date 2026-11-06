@@ -28,7 +28,7 @@ const STATE_LABELS = {
   expired: { label: "Expired", className: "bg-amber-100 dark:bg-amber-950 text-amber-950 dark:text-amber-100" },
 } as const;
 
-function AddMenu({ onChoose, onClose }: { onChoose: (type: BlockType) => void; onClose: () => void }) {
+function AddMenu({ onChoose, onClose, hasIcons }: { onChoose: (type: BlockType) => void; onClose: () => void; hasIcons: boolean }) {
   return (
     <div className="grid gap-4 rounded-xl border bg-card p-4">
       <div className="flex items-center justify-between">
@@ -44,10 +44,14 @@ function AddMenu({ onChoose, onClose }: { onChoose: (type: BlockType) => void; o
                 key={type}
                 type="button"
                 onClick={() => onChoose(type)}
-                className="rounded-lg border p-3 text-left transition-colors hover:border-brand-violet hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                // A page has one place for its icons. The existing block can be moved instead.
+                disabled={type === "social_icons" && hasIcons}
+                className="rounded-lg border p-3 text-left transition-colors hover:border-brand-violet hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-60"
               >
                 <span className="block text-sm font-medium">{BLOCK_DEFINITIONS[type].label}</span>
-                <span className="block text-xs text-muted-foreground">{BLOCK_DEFINITIONS[type].description}</span>
+                <span className="block text-xs text-muted-foreground">
+                  {type === "social_icons" && hasIcons ? "Already on your page. Drag it to move your icons." : BLOCK_DEFINITIONS[type].description}
+                </span>
               </button>
             ))}
           </div>
@@ -121,7 +125,7 @@ export function BlockManager({ profile, initialBlocks, socialLinks, startAdding 
           </Button>
         ) : null}
 
-        {adding === "menu" ? <AddMenu onChoose={setAdding} onClose={() => setAdding(null)} /> : null}
+        {adding === "menu" ? <AddMenu onChoose={setAdding} onClose={() => setAdding(null)} hasIcons={blocks.some((block) => block.type === "social_icons")} /> : null}
 
         {adding && adding !== "menu" ? (
           <div className="grid gap-3 rounded-xl border bg-card p-4">
@@ -201,9 +205,11 @@ export function BlockManager({ profile, initialBlocks, socialLinks, startAdding 
                       <Pencil aria-hidden />
                     </Button>
                   ) : null}
-                  <Button type="button" size="icon-sm" variant="ghost" aria-label={`Duplicate ${definition.label}`} onClick={() => duplicate(block.id)}>
-                    <Copy aria-hidden />
-                  </Button>
+                  {block.type === "social_icons" ? null : (
+                    <Button type="button" size="icon-sm" variant="ghost" aria-label={`Duplicate ${definition.label}`} onClick={() => duplicate(block.id)}>
+                      <Copy aria-hidden />
+                    </Button>
+                  )}
                   <Button type="button" size="icon-sm" variant="ghost" aria-label={`Delete ${definition.label}`} onClick={() => remove(block.id, definition.label)}>
                     <Trash2 aria-hidden />
                   </Button>

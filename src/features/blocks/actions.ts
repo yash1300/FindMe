@@ -17,6 +17,7 @@ const COLUMNS = "id, type, config, is_visible, starts_at, ends_at";
 const idSchema = z.uuid();
 
 const LIMIT_REACHED = "You've reached the maximum of 200 blocks on a page.";
+const ONE_ICONS_BLOCK = "Your page already has a Social icons block. Drag it to move your icons.";
 
 /** Validated config plus schedule, or field errors for the form. */
 function validate(type: BlockType, config: unknown, schedule: unknown, userId: string) {
@@ -65,6 +66,7 @@ export async function createBlockAction(input: {
 
   if (error) {
     if (error.message.includes("block limit")) return failure(LIMIT_REACHED);
+    if (error.code === "23505") return failure(ONE_ICONS_BLOCK);
     logger.error("blocks.create_failed", { code: error.code });
     return failure();
   }
@@ -186,6 +188,7 @@ export async function duplicateBlockAction(id: string): Promise<ActionResult<{ b
     .single<OwnerBlock>();
   if (error) {
     if (error.message.includes("block limit")) return failure(LIMIT_REACHED);
+    if (error.code === "23505") return failure(ONE_ICONS_BLOCK);
     logger.error("blocks.duplicate_failed", { code: error.code });
     return failure();
   }

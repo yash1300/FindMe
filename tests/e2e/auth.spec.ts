@@ -75,7 +75,7 @@ test.describe("registration", () => {
   test("an invalid email link is rejected", async ({ page }) => {
     await page.goto("/auth/callback?token_hash=not-a-real-token&type=signup");
     await expect(page).toHaveURL(/\/login\?error=auth_callback/);
-    await expect(page.getByText("That link is invalid or has expired.")).toBeVisible();
+    await expect(page.getByText(/That link is invalid, expired or already used/)).toBeVisible();
   });
 });
 

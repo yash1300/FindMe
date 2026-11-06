@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import { Suspense } from "react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
-import { signOutAction } from "@/features/auth/actions";
 import { requireOnboardedUser } from "@/features/auth/session";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -13,7 +12,7 @@ export const metadata: Metadata = { title: "Dashboard", robots: { index: false, 
 
 function SignOut() {
   return (
-    <form action={signOutAction}>
+    <form action="/auth/signout" method="post">
       <Button type="submit" variant="ghost" size="sm" className="text-gray-300 hover:bg-white/10 hover:text-white">
         Log out
       </Button>

@@ -189,7 +189,7 @@ export function OnboardingWizard({ baseUrl, profile, theme: initialTheme, blocks
         />
       ) : null}
 
-      {step.id === "social" ? <SocialManager initialLinks={links} onChange={setLinks} onBlocksChange={setBlocks} /> : null}
+      {step.id === "social" ? <SocialManager initialLinks={links} initialBlocks={blocks} onChange={setLinks} onBlocksChange={setBlocks} /> : null}
 
       {step.id === "theme" ? <PresetPicker current={theme.preset} onChoose={(preset) => setTheme(THEME_PRESETS[preset])} /> : null}
 

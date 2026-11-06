@@ -77,11 +77,11 @@ export const BLOCK_DEFINITIONS: Record<BlockType, BlockDefinition> = {
   },
   social_icons: {
     label: "Social icons",
-    description: "Show your social links at this spot on the page",
+    description: "Show your social icons at this spot. Hide or delete it to take them off your page",
     group: "Links",
     fields: [],
     defaults: {},
-    summary: () => "Shows the social links from My Page",
+    summary: () => "Your social icons from My Page appear here",
   },
   heading: {
     label: "Heading",

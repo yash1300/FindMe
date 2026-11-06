@@ -1,12 +1,39 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { type AnalyticsSummary, formatCount } from "../summary";
+import { type AnalyticsSummary, formatCount, percentChange } from "../summary";
 
-export function MetricCards({ summary }: { summary: AnalyticsSummary }) {
+/** "Up 12%" in words and an arrow, so the direction never relies on colour alone. */
+function Change({ current, previous, label }: { current: number; previous: number; label: string }) {
+  const change = percentChange(current, previous);
+  if (change === null) return <p className="text-xs text-muted-foreground">No data for {label} to compare</p>;
+  const rounded = Math.round(change);
+  const text = rounded === 0 ? "No change" : `${rounded > 0 ? "▲ Up" : "▼ Down"} ${Math.abs(rounded)}%`;
+  return (
+    <p className="text-xs text-muted-foreground">
+      <span className="font-medium text-foreground">{text}</span> on {label}
+    </p>
+  );
+}
+
+export function MetricCards({
+  summary,
+  previous,
+  previousLabel = "the previous period",
+}: {
+  summary: AnalyticsSummary;
+  previous?: AnalyticsSummary;
+  previousLabel?: string;
+}) {
   const metrics = [
-    { label: "Profile views", value: formatCount(summary.views), testId: "metric-views" },
-    { label: "Estimated visitors", value: formatCount(summary.uniques), testId: "metric-uniques" },
-    { label: "Link clicks", value: formatCount(summary.clicks), testId: "metric-clicks" },
-    { label: "Click-through rate", value: summary.ctr === null ? "–" : `${summary.ctr.toFixed(1)}%`, testId: "metric-ctr" },
+    { label: "Profile views", value: formatCount(summary.views), testId: "metric-views", now: summary.views, before: previous?.views },
+    { label: "Estimated visitors", value: formatCount(summary.uniques), testId: "metric-uniques", now: summary.uniques, before: previous?.uniques },
+    { label: "Link clicks", value: formatCount(summary.clicks), testId: "metric-clicks", now: summary.clicks, before: previous?.clicks },
+    {
+      label: "Click-through rate",
+      value: summary.ctr === null ? "–" : `${summary.ctr.toFixed(1)}%`,
+      testId: "metric-ctr",
+      now: summary.ctr ?? 0,
+      before: previous?.ctr ?? undefined,
+    },
   ];
   return (
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -15,6 +42,7 @@ export function MetricCards({ summary }: { summary: AnalyticsSummary }) {
           <CardHeader>
             <CardDescription>{metric.label}</CardDescription>
             <CardTitle className="text-3xl" data-testid={metric.testId}>{metric.value}</CardTitle>
+            {metric.before !== undefined ? <Change current={metric.now} previous={metric.before} label={previousLabel} /> : null}
           </CardHeader>
         </Card>
       ))}
@@ -28,7 +56,7 @@ export function BarList({
   emptyText = "Nothing yet.",
   barColor = "var(--chart-views)",
 }: {
-  rows: { label: string; value: number }[];
+  rows: { label: string; value: number; detail?: string }[];
   emptyText?: string;
   barColor?: string;
 }) {
@@ -43,9 +71,12 @@ export function BarList({
             <span
               aria-hidden
               className="h-2.5 rounded-r-[4px]"
-              style={{ width: `calc(${(row.value / max) * 100}% - 3.5rem)`, minWidth: "2px", background: barColor }}
+              style={{ width: `calc(${(row.value / max) * 100}% - ${row.detail ? "9rem" : "3.5rem"})`, minWidth: "2px", background: barColor }}
             />
-            <span className="shrink-0 text-xs font-medium">{formatCount(row.value)}</span>
+            <span className="shrink-0 text-xs font-medium">
+              {formatCount(row.value)}
+              {row.detail ? <span className="font-normal text-muted-foreground"> · {row.detail}</span> : null}
+            </span>
           </span>
         </li>
       ))}

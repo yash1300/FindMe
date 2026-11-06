@@ -105,7 +105,7 @@ All page content, including links. Replaces the spec's `links` and `content_bloc
 | `position` | Set by trigger on insert, and otherwise only by `reorder_blocks` |
 | `is_visible`, `starts_at`, `ends_at` | Visibility and schedule. A `CHECK` requires the end to be after the start |
 
-Limited to 200 per profile by trigger.
+Limited to 200 per profile by trigger. At most one `social_icons` block per profile (partial unique index `blocks_one_social_icons_idx`). Every new profile gets one at position 0 from the `profiles_d_add_social_icons` trigger, and migration `20261107000000` gave one to existing pages at the top. Social icons appear only where this block is, so hiding or deleting it removes them from the page.
 
 **RLS:** owners read their own. Writes also require an active account, through `owns_profile()`.
 
@@ -169,6 +169,16 @@ Public reports of a page or link, with a snapshot of the username so they outliv
 
 Permanent record of what staff did and why. Not foreign keys, for the same reason as `audit_logs`, and the service role can only read and insert.
 
+### `shared_themes` ✅
+
+Themes shared to the gallery (Phase 7). `owner_id` (FK to `accounts`, cascade), `name` (2–40 characters), `theme` (jsonb, up to 8 KB, validated by the app when shared and again when used, with any background photo removed), `status` (`listed` or `removed`), `use_count`. Ten per owner, by trigger, which also forces `status` and `use_count` on insert.
+
+**RLS:** owners read, insert and delete their own. Nobody can update rows directly: use counts change only through `use_gallery_theme`, and removal by staff only through `admin_remove_shared_theme`.
+
+### `gallery_themes` view ✅
+
+Listed themes from active accounts, without `owner_id`, so the gallery never reveals who shared what. Signed-in users only.
+
 ### New `leads` column
 
 `custom_fields`: answers to a form's extra questions. Labels come from the stored form, so visitors can't add fields of their own.
@@ -194,6 +204,9 @@ Permanent record of what staff did and why. Not foreign keys, for the same reaso
 | `admin_overview()` | service role | Platform figures. The server checks the caller's admin role first |
 | `resolve_custom_domain(text)` | anon, authenticated, service role | Username for an active domain on a live page, or nothing |
 | `admin_set_account_status`, `admin_set_profile_suspended`, `admin_hide_block`, `admin_close_report`, `admin_update_setting` | service role | Check the actor's role, then make the change and write the log entries in one transaction. Settings are admin-only |
+| `use_gallery_theme(uuid)` | authenticated | Returns a listed theme and counts the use, unless the caller shared it |
+| `admin_remove_shared_theme(uuid, uuid, text)` | service role | Takes a theme out of the gallery, with moderation and audit entries in one transaction |
+| `add_social_icons_block()` | trigger | Adds the Social icons block to each new profile |
 | `check_rate_limit(text, int, int)` | service role | Atomic fixed-window counter. Returns `allowed` and `retry_after_seconds` |
 
 All `SECURITY DEFINER` functions set an empty `search_path` and use fully qualified names, and default `PUBLIC` execute rights are revoked.

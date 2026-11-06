@@ -1,5 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { countryName, formatCount, parseRange, summarize, todayInIndia, type DailyRow } from "./summary";
+import {
+  analyticsCsv,
+  countryName,
+  formatCount,
+  parseRange,
+  percentChange,
+  previousRange,
+  summarize,
+  todayInIndia,
+  weekdayAverages,
+  type DailyRow,
+} from "./summary";
 
 const TODAY = "2026-11-04";
 
@@ -110,5 +121,49 @@ describe("formatting", () => {
   it("names countries, and copes with odd codes", () => {
     expect(countryName("IN")).toBe("India");
     expect(countryName("not-a-code")).toBe("not-a-code");
+  });
+});
+
+describe("comparisons", () => {
+  it("compares with the period of the same length just before", () => {
+    expect(previousRange({ from: "2026-10-06", to: "2026-11-04" })).toEqual({ from: "2026-09-06", to: "2026-10-05" });
+    expect(previousRange({ from: "2026-11-04", to: "2026-11-04" })).toEqual({ from: "2026-11-03", to: "2026-11-03" });
+    expect(previousRange({ from: "2026-03-01", to: "2026-03-07" })).toEqual({ from: "2026-02-22", to: "2026-02-28" });
+  });
+
+  it("gives a percentage change, and none when there was nothing before", () => {
+    expect(percentChange(150, 100)).toBe(50);
+    expect(percentChange(50, 100)).toBe(-50);
+    expect(percentChange(10, 0)).toBeNull();
+  });
+});
+
+describe("weekdayAverages", () => {
+  it("averages each day of the week, busiest first", () => {
+    // 2026-11-02 is a Monday.
+    const series = Array.from({ length: 14 }, (_, i) => {
+      const day = new Date(Date.UTC(2026, 10, 2 + i)).toISOString().slice(0, 10);
+      return { day, views: i % 7 === 5 ? 10 : 2, clicks: 0 };
+    });
+    const result = weekdayAverages(series);
+    expect(result[0]).toEqual({ weekday: "Saturday", views: 10 });
+    expect(result).toHaveLength(7);
+  });
+
+  it("says nothing about ranges shorter than two weeks", () => {
+    expect(weekdayAverages([{ day: "2026-11-02", views: 5, clicks: 0 }])).toEqual([]);
+  });
+});
+
+describe("analyticsCsv", () => {
+  it("names links, and stops spreadsheets running cells as formulas", () => {
+    const csv = analyticsCsv(
+      [row("2026-11-02", "total", "", 10, 3, 8), row("2026-11-02", "block", "abc", 0, 3, 0)],
+      () => '=HYPERLINK("x"), "quoted"',
+    );
+    const lines = csv.trim().split("\r\n");
+    expect(lines[0]).toBe("date,measure,value,views,visitors,clicks");
+    expect(lines).toContain("2026-11-02,total,,10,8,3");
+    expect(lines).toContain(`2026-11-02,link,"'=HYPERLINK(""x""), ""quoted""",0,0,3`);
   });
 });

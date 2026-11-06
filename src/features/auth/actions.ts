@@ -17,7 +17,7 @@ import {
   UNAVAILABLE_MESSAGE,
   validationError,
 } from "./action-state";
-import { ACTIVE_PROFILE_COOKIE, RECOVERY_COOKIE } from "./constants";
+import { RECOVERY_COOKIE } from "./constants";
 import { emailOnlySchema, loginSchema, registerSchema, resetPasswordSchema } from "./schema";
 
 async function clientIp(): Promise<string> {
@@ -188,17 +188,6 @@ export async function signInWithGoogleAction(formData: FormData): Promise<void> 
     redirect("/login?error=oauth");
   }
   redirect(data.url);
-}
-
-export async function signOutAction(): Promise<void> {
-  if (isSupabaseConfigured()) {
-    const supabase = await createSupabaseServerClient();
-    const { error } = await supabase.auth.signOut();
-    if (error) logger.warn("auth.signout.failed", { code: error.code, status: error.status });
-  }
-  // Which page was being edited belongs to this person, not to the browser.
-  (await cookies()).delete(ACTIVE_PROFILE_COOKIE);
-  redirect("/");
 }
 
 export async function requestPasswordResetAction(_prev: ActionState, formData: FormData): Promise<ActionState> {

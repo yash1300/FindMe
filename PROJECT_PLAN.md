@@ -106,13 +106,13 @@ Verified against the local stack. Not yet on the hosted database or live site. E
 
 ## Phase 7 — Differentiation
 
-Each item needs approval because of cost and privacy impact.
+Built without new costs or new data collection. Nothing paid, as FindMe is free.
 
-- [ ] AI profile builder
-- [ ] Theme marketplace
-- [ ] Advanced analytics
-- [ ] Creator recommendations
-- [ ] Additional integrations
+- [ ] AI profile builder: **skipped for now** by the owner's decision (2026-11-06), because of per-use cost and sending creators' text to an AI provider
+- [x] Theme gallery: creators share their saved theme by name, others use it; no creator identity or photos shared; 10 per creator; staff can remove, logged
+- [x] Advanced analytics: comparison with the previous period, per-link click share, links nobody clicked, busiest weekdays, CSV download
+- [x] Creator recommendations: rule-based suggestions on the Overview, from the page's own content and numbers
+- [ ] Additional integrations: a UPI payment block was started and removed at the owner's request, since payments are out of scope. No other integration yet
 
 ## Phase 8 — Production
 
@@ -128,6 +128,7 @@ Each item needs approval because of cost and privacy impact.
 | Date | Change |
 | --- | --- |
 | 2026-11-03 | Plan created; Phase 1 implemented and verified locally |
+| 2026-11-06 | Phase 7 (without AI or payments) verified locally. Logout moved to its own route; Social icons block now fully controls the icons |
 | 2026-11-04 | Phases 4 and 6 verified locally. Dark mode and softer palette added. Hosted migrations and live checks pending |
 | 2026-11-04 | Phase 4 written, browser tests pending. Pricing removed; Phase 5 not being built, as FindMe is free |
 | 2026-11-04 | Phases 2 and 3 implemented and verified locally. Theme presets stay in code until the Phase 6 admin panel needs to edit them |
