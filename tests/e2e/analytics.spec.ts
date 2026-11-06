@@ -160,7 +160,7 @@ test.describe("analytics", () => {
   test("clicks can't redirect anywhere but the stored address", async ({ page, request }) => {
     const identity = await publishWithLink(page, "Safe link");
     const [{ id: profileId }] = await (await serviceRest(`profiles?username=eq.${identity.username}&select=id`)).json();
-    const [{ id: blockId }] = await (await serviceRest(`blocks?profile_id=eq.${profileId}&select=id`)).json();
+    const [{ id: blockId }] = await (await serviceRest(`blocks?profile_id=eq.${profileId}&type=eq.link&select=id`)).json();
 
     const attempt = await request.get(`/l/${blockId}?url=https://evil.example&next=https://evil.example`, { maxRedirects: 0 });
     expect(attempt.headers().location).toBe("https://example.com/destination");

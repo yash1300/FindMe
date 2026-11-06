@@ -18,6 +18,12 @@ export async function GET(request: NextRequest) {
 
   if (!isSupabaseConfigured()) return failure();
 
+  // Google, or Supabase on its behalf, reports a cancelled or refused sign-in this way.
+  if (params.get("error")) {
+    logger.info("auth.callback.provider_error", { error: params.get("error")?.slice(0, 64) });
+    return toApp("/login?error=oauth_cancelled");
+  }
+
   const code = params.get("code");
   const tokenHash = params.get("token_hash");
   const type = params.get("type");

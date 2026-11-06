@@ -10,7 +10,8 @@ import { safeRedirectPath } from "@/lib/security/safe-redirect";
 export const metadata: Metadata = { title: "Log in" };
 
 const ERROR_MESSAGES: Record<string, string> = {
-  auth_callback: "That link is invalid or has expired. Please try again.",
+  auth_callback: "That link is invalid, expired or already used. If you've already confirmed your email, just log in below.",
+  oauth_cancelled: "Google sign-in didn't finish. Please try again, or log in with your email.",
   oauth: "We couldn't start Google sign-in. Please try again or use your email.",
 };
 

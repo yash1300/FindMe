@@ -114,6 +114,8 @@ export async function saveSocialLinkAction(input: {
       .select(COLUMNS)
       .single<OwnerSocialLink>();
     if (error) {
+      // Added a moment ago, from another tab or a double click.
+      if (error.code === "23505") return failure(`${platformLabel(input.platform)} is already on your page. Reload to see it.`);
       logger.error("social.insert_failed", { code: error.code });
       return failure();
     }
@@ -182,6 +184,63 @@ export async function addSocialButtonsAction(): Promise<ActionResult<{ added: nu
         ? `Added ${added} ${added === 1 ? "button" : "buttons"} to your page. You can edit them under Links.`
         : "All your links already have buttons.";
   return { ok: true, added, message, blocks: await currentBlocks(profile.id) };
+}
+
+/**
+ * Puts the social icons back on the page: shows a hidden Social icons block, or adds one at the
+ * top, where icons sit by default.
+ */
+export async function showSocialIconsAction(): Promise<ActionResult<{ blocks?: OwnerBlock[] }>> {
+  const { user, profile } = await requireProfileOwner();
+  const limited = await limitUser(user.id);
+  if (limited) return limited;
+
+  const supabase = await createSupabaseServerClient();
+  const { data: existing, error: readError } = await supabase
+    .from("blocks")
+    .select("id")
+    .eq("profile_id", profile.id)
+    .eq("type", "social_icons")
+    .maybeSingle<{ id: string }>();
+  if (readError) {
+    logger.error("social.icons_read_failed", { code: readError.code });
+    return failure();
+  }
+
+  if (existing) {
+    const { error } = await supabase
+      .from("blocks")
+      .update({ is_visible: true, starts_at: null, ends_at: null })
+      .eq("id", existing.id)
+      .eq("profile_id", profile.id);
+    if (error) {
+      logger.error("social.icons_show_failed", { code: error.code });
+      return failure();
+    }
+  } else {
+    const { data: added, error } = await supabase
+      .from("blocks")
+      .insert({ profile_id: profile.id, type: "social_icons", config: {} })
+      .select("id")
+      .single<{ id: string }>();
+    if (error) {
+      if (error.message.includes("block limit")) return failure("Your page has too many blocks. Remove one to make room for your icons.");
+      // Another tab added it first, which is what was wanted.
+      if (error.code !== "23505") {
+        logger.error("social.icons_add_failed", { code: error.code });
+        return failure();
+      }
+    } else {
+      const { data: rows } = await supabase.from("blocks").select("id").eq("profile_id", profile.id).order("position").order("created_at");
+      const order = [added.id, ...(rows ?? []).map((row) => row.id).filter((id) => id !== added.id)];
+      const { error: reorderError } = await supabase.rpc("reorder_blocks", { p_profile_id: profile.id, p_ids: order });
+      // The icons are on the page either way, just lower down.
+      if (reorderError) logger.warn("social.icons_reorder_failed", { code: reorderError.code });
+    }
+  }
+
+  updateTag(profileTag(profile.username));
+  return { ok: true, blocks: await currentBlocks(profile.id) };
 }
 
 /** The button made for a stored social link, if the link and its button still exist. */

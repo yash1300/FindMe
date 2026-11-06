@@ -1,14 +1,16 @@
-import { Eye, Link2, Palette, Plus, Share2, UserRound } from "lucide-react";
+import { ArrowRight, Eye, Palette, Plus, Share2, UserRound } from "lucide-react";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarList, MetricCards } from "@/features/analytics/components/analytics-parts";
 import { TrendChart } from "@/features/analytics/components/trend-chart";
+import { blockNamer } from "@/features/analytics/block-name";
 import { getDailyRows } from "@/features/analytics/queries";
 import { parseRange, summarize, todayInIndia } from "@/features/analytics/summary";
 import { requireOnboardedUser } from "@/features/auth/session";
 import { blockState } from "@/features/blocks/schedule";
 import { getOwnerContent } from "@/features/profile/queries";
+import { recommend } from "@/features/recommendations/recommend";
 import { getAppUrl } from "@/lib/env";
 
 const STATUS_COPY = {
@@ -31,10 +33,17 @@ export default async function DashboardPage() {
   const range = parseRange({ range: "30" }, todayInIndia());
   const [{ blocks, socialLinks }, rows] = await Promise.all([getOwnerContent(profile.id), getDailyRows(profile.id, range.from, range.to)]);
   const summary = summarize(rows, range);
-  const titleOf = (id: string) => {
-    const title = blocks.find((block) => block.id === id)?.config.title;
-    return typeof title === "string" ? title : "Deleted link";
-  };
+  const titleOf = blockNamer(blocks);
+  const suggestions = recommend({
+    status: profile.status,
+    bio: profile.bio,
+    avatarPath: profile.avatar_path,
+    blocks,
+    socialLinks,
+    views: summary.views,
+    clicks: summary.clicks,
+    blockClicks: summary.blockClicks,
+  });
 
   const activeLinks = blocks.filter(
     (block) => ["link", "featured_link", "product_card"].includes(block.type) && blockState(block) === "live",
@@ -86,6 +95,27 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
+      {suggestions.length > 0 ? (
+        <section className="grid gap-3" aria-labelledby="suggestions-heading">
+          <h2 id="suggestions-heading" className="text-sm font-medium text-muted-foreground">Suggestions for your page</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {suggestions.map((item) => (
+              <Card key={item.id} data-testid={`suggestion-${item.id}`}>
+                <CardHeader>
+                  <CardTitle className="text-base">{item.title}</CardTitle>
+                  <CardDescription>{item.text}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Link href={item.href} prefetch={false} className={buttonVariants({ variant: "outline", size: "sm" })}>
+                    {item.action} <ArrowRight aria-hidden />
+                  </Link>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <section className="grid gap-3" aria-label="Last 30 days">
         <h2 className="text-sm font-medium text-muted-foreground">Last 30 days</h2>
         <MetricCards summary={summary} />
@@ -122,14 +152,6 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      {blocks.length === 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Link2 className="size-4" aria-hidden /> Add your first link</CardTitle>
-            <CardDescription>Your page has no content yet. Links, videos, music and more all live under Links.</CardDescription>
-          </CardHeader>
-        </Card>
-      ) : null}
     </div>
   );
 }

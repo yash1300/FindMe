@@ -4,7 +4,6 @@ import { Suspense } from "react";
 import { Logo } from "@/components/brand/logo";
 import { FormSkeleton } from "@/components/forms/form-skeleton";
 import { Button } from "@/components/ui/button";
-import { signOutAction } from "@/features/auth/actions";
 import { getAccountContext, requireUser } from "@/features/auth/session";
 import { getSupportEmail } from "@/lib/env";
 
@@ -33,7 +32,7 @@ async function SuspendedContent() {
           </>
         ) : null}
       </p>
-      <form action={signOutAction}>
+      <form action="/auth/signout" method="post">
         <Button type="submit" variant="outline">
           Log out
         </Button>

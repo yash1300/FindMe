@@ -255,7 +255,8 @@ test.describe("link manager", () => {
     await page.mouse.move(to!.x + 10, to!.y + 5, { steps: 10 });
     await page.mouse.up();
 
-    const titles = () => page.locator("ul li p.truncate").allTextContents();
+    // Every page also starts with its Social icons block, which isn't part of this.
+    const titles = async () => (await page.locator("ul li p.truncate").allTextContents()).filter((text) => !text.startsWith("Your social icons"));
     await expect.poll(async () => (await titles()).map((text) => text.split(" ·")[0])).toEqual(["Charlie", "Alpha", "Bravo"]);
 
     // Lets the drag's settling animation finish, because keyboard moves measure positions on screen.
@@ -298,7 +299,7 @@ test.describe("link manager", () => {
     await page.keyboard.press("Space");
 
     await expect(page.getByRole("alert").filter({ hasText: "changed somewhere else" })).toBeVisible();
-    const titles = await page.locator("ul li p.truncate").allTextContents();
+    const titles = (await page.locator("ul li p.truncate").allTextContents()).filter((text) => !text.startsWith("Your social icons"));
     expect(titles.map((text) => text.split(" ·")[0])).toEqual(["Alpha", "Bravo"]);
   });
 
@@ -349,9 +350,10 @@ test.describe("content blocks", () => {
     await addBlock(page, /^SoundCloud/, { "SoundCloud link": "https://soundcloud.com/artist/track" }, "Add soundcloud");
     await addBlock(page, /^Video Embed/, { "Video link": "https://vimeo.com/123456789" }, "Add video");
 
+    // Every page already has its one Social icons block, so a second can't be added.
     await page.getByRole("button", { name: "Add block" }).click();
-    await page.getByRole("button", { name: /^Social icons/ }).click();
-    await page.getByRole("button", { name: "Add social icons" }).click();
+    await expect(page.getByRole("button", { name: /^Social icons/ })).toBeDisabled();
+    await page.getByRole("button", { name: "Close" }).click();
     await page.getByRole("button", { name: "Add block" }).click();
     await page.getByRole("button", { name: /^Divider/ }).click();
     await page.getByRole("button", { name: "Add divider" }).click();

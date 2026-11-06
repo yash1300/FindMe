@@ -331,6 +331,7 @@ describe("internal tables", () => {
       "reorder_blocks",
       "reorder_social_links",
       "resolve_custom_domain",
+      "use_gallery_theme",
     ]);
   });
 });

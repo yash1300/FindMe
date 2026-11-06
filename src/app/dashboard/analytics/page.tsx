@@ -6,11 +6,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BarList, BreakdownCard, MetricCards } from "@/features/analytics/components/analytics-parts";
 import { TrendChart } from "@/features/analytics/components/trend-chart";
+import { blockNamer } from "@/features/analytics/block-name";
 import { getDailyRows } from "@/features/analytics/queries";
-import { countryName, formatDay, parseRange, PRESET_RANGES, summarize, todayInIndia } from "@/features/analytics/summary";
+import {
+  countryName,
+  formatDay,
+  parseRange,
+  PRESET_RANGES,
+  previousRange,
+  summarize,
+  todayInIndia,
+  weekdayAverages,
+} from "@/features/analytics/summary";
 import { requireOnboardedUser } from "@/features/auth/session";
-import { BLOCK_DEFINITIONS } from "@/features/blocks/definitions";
-import { isBlockType } from "@/features/blocks/schema";
 import { getOwnerContent } from "@/features/profile/queries";
 
 export const metadata: Metadata = { title: "Analytics" };
@@ -24,16 +32,22 @@ export default async function AnalyticsPage({
 }) {
   const { profile } = await requireOnboardedUser("/dashboard/analytics");
   const range = parseRange(await searchParams, todayInIndia());
-  const [rows, { blocks }] = await Promise.all([getDailyRows(profile.id, range.from, range.to), getOwnerContent(profile.id)]);
+  const before = previousRange(range);
+  // One read covers this period and the one before it, for comparison.
+  const [rows, { blocks }] = await Promise.all([getDailyRows(profile.id, before.from, range.to), getOwnerContent(profile.id)]);
   const summary = summarize(rows, range);
+  const previous = summarize(rows, before);
+  const previousLabel = range.id === "today" ? "yesterday" : `the ${summary.series.length} days before`;
+  const weekdays = weekdayAverages(summary.series);
+  const exportQuery = new URLSearchParams({ range: range.id, from: range.from, to: range.to }).toString();
 
-  const blockName = (id: string) => {
-    const block = blocks.find((item) => item.id === id);
-    if (!block) return "Deleted link";
-    const title = block.config.title ?? block.config.text;
-    if (typeof title === "string") return title;
-    return isBlockType(block.type) ? BLOCK_DEFINITIONS[block.type].label : "Link";
-  };
+  // Links that were on show but nobody clicked, worth moving up or rewording.
+  const clicked = new Set(summary.blockClicks.map((item) => item.blockId));
+  const CLICKABLE = new Set(["link", "featured_link", "product_card", "email_button", "phone_button"]);
+  const unclicked = summary.views >= 10 ? blocks.filter((block) => block.is_visible && CLICKABLE.has(block.type) && !clicked.has(block.id)) : [];
+  const percentOfViews = (clicks: number) => (summary.views > 0 ? `${((clicks / summary.views) * 100).toFixed(1)}% of views` : undefined);
+
+  const blockName = blockNamer(blocks);
 
   const hasData = summary.views > 0 || summary.clicks > 0;
   const { referrer, device, browser, os, country } = summary.breakdowns;
@@ -82,7 +96,7 @@ export default async function AnalyticsPage({
         </p>
       ) : null}
 
-      <MetricCards summary={summary} />
+      <MetricCards summary={summary} previous={previous} previousLabel={previousLabel} />
 
       {hasData ? (
         <>
@@ -104,10 +118,41 @@ export default async function AnalyticsPage({
               <BarList
                 barColor="var(--chart-clicks)"
                 emptyText="No clicks in this period."
-                rows={summary.blockClicks.slice(0, 10).map((item) => ({ label: blockName(item.blockId), value: item.clicks }))}
+                rows={summary.blockClicks.slice(0, 10).map((item) => ({ label: blockName(item.blockId), value: item.clicks, detail: percentOfViews(item.clicks) }))}
               />
             </CardContent>
           </Card>
+
+          {unclicked.length > 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Links nobody clicked</CardTitle>
+                <CardDescription>
+                  Shown on your page in this period, but not clicked. Try moving them higher or giving them a clearer title on the{" "}
+                  <Link href="/dashboard/links" prefetch={false} className="underline">Links page</Link>.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="grid gap-1 text-sm">
+                  {unclicked.slice(0, 10).map((block) => (
+                    <li key={block.id} className="truncate">{blockName(block.id)}</li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {weekdays.length > 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Busiest days</CardTitle>
+                <CardDescription>Average views on each day of the week. A good guide to when to share your page.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <BarList rows={weekdays.map((item) => ({ label: item.weekday, value: item.views }))} />
+              </CardContent>
+            </Card>
+          ) : null}
 
           <div className="grid gap-4 md:grid-cols-2">
             <BreakdownCard title="Where visitors came from" rows={toBars(referrer)} />
@@ -129,6 +174,12 @@ export default async function AnalyticsPage({
           </CardHeader>
         </Card>
       )}
+
+      <div>
+        <a href={`/dashboard/analytics/export?${exportQuery}`} className={buttonVariants({ variant: "outline", size: "sm" })} download>
+          Download as CSV
+        </a>
+      </div>
 
       <p className="text-xs text-muted-foreground">
         Visitor counts are estimates. We don&apos;t store IP addresses or track people across days or pages, so someone returning on a later day counts again. Bots, your own previews, and visitors who ask not to be tracked aren&apos;t counted. Detailed records are deleted after 30 days; daily totals are kept.

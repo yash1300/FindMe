@@ -1,4 +1,4 @@
-import { Flag, Inbox, LayoutDashboard, ScrollText, Settings, Users } from "lucide-react";
+import { Flag, Inbox, LayoutDashboard, Palette, ScrollText, Settings, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -11,6 +11,7 @@ const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/reports", label: "Reports", icon: Flag },
+  { href: "/admin/themes", label: "Shared themes", icon: Palette },
   { href: "/admin/support", label: "Messages", icon: Inbox },
   { href: "/admin/audit", label: "Audit log", icon: ScrollText },
   { href: "/admin/settings", label: "Settings", icon: Settings },

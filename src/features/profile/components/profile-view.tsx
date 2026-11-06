@@ -6,7 +6,7 @@ import { themeToStyle } from "@/features/themes/css";
 import { THEME_FONT_CLASSES } from "@/features/themes/fonts";
 import type { Theme } from "@/features/themes/schema";
 import { getAppUrl } from "@/lib/env";
-import { BlockView, SocialIcons, type RenderContext } from "./block-view";
+import { BlockView, type RenderContext } from "./block-view";
 import "../profile.css";
 
 export type ProfileViewData = {
@@ -31,7 +31,8 @@ function initials(name: string): string {
 /**
  * The one renderer behind public pages, the editor's live preview and the marketing demos.
  * It holds no state and fetches nothing, so it stays fast, and what a creator sees while
- * editing is exactly what visitors get.
+ * editing is exactly what visitors get. Social icons appear only where the Social icons block is,
+ * so hiding or deleting that block takes them off the page.
  */
 export function ProfileView({ data, preview = false }: { data: ProfileViewData; preview?: boolean }) {
   const { theme, blocks, socialLinks } = data;
@@ -45,9 +46,6 @@ export function ProfileView({ data, preview = false }: { data: ProfileViewData; 
     socialLinks,
     preview,
   };
-
-  // If there's no social icons block, the icons sit under the bio so that they're never lost.
-  const hasSocialBlock = blocks.some((block) => block.type === "social_icons");
 
   return (
     <div
@@ -78,14 +76,16 @@ export function ProfileView({ data, preview = false }: { data: ProfileViewData; 
           <h1 className="fm-name">{data.displayName}</h1>
           <p className="fm-username">@{data.username}</p>
           {data.bio ? <p className="fm-bio">{data.bio}</p> : null}
-          {!hasSocialBlock ? <SocialIcons links={socialLinks} /> : null}
         </header>
 
-        {blocks.map((block, index) => (
-          <div key={block.id} className="fm-item" style={{ "--fm-i": Math.min(index + 1, 12) } as React.CSSProperties}>
-            <BlockView block={block} context={context} />
-          </div>
-        ))}
+        {blocks.map((block, index) =>
+          // An empty spot would still take up a gap in the layout.
+          block.type === "social_icons" && socialLinks.length === 0 ? null : (
+            <div key={block.id} className="fm-item" style={{ "--fm-i": Math.min(index + 1, 12) } as React.CSSProperties}>
+              <BlockView block={block} context={context} />
+            </div>
+          ),
+        )}
 
         <footer className="fm-footer">
           <a href={getAppUrl()} tabIndex={preview ? -1 : undefined}>Made with FindMe</a>

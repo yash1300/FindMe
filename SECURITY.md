@@ -96,13 +96,14 @@ These are open and will be re-reviewed in the Phase 8 audit.
 2. **Reserved usernames are an exact-match list.** Substring matching causes false positives on legitimate names, so determined look-alikes are left to moderation (Phase 6).
 3. **Client IP comes from `x-forwarded-for`,** which is only trustworthy behind Vercel. Self-hosting requires reviewing `src/lib/security/client-ip.ts`.
 4. **Images uploaded before metadata stripping keep their metadata.** New uploads have EXIF, XMP, comments and text chunks removed by `stripImageMetadata`, and JPEG data after the first end-of-image marker is dropped, with only the rotation kept. GIFs are stored unchanged. Older files aren't rewritten.
-5. **Audit log writes aren't wired up yet.** The append-only table exists, but nothing writes to it, because no admin actions exist so far. Phase 6 must make admin actions and their audit entries atomic.
+5. **Shared theme names are checked after publication.** A name is limited to plain characters, but nobody reviews it before it appears in the gallery. Staff can remove a theme at /admin/themes, and the removal is logged. Only signed-in creators see the gallery, and a shared theme carries no creator identity or images.
 6. **Storage isn't cleaned up or capped per user.** Replaced images stay in storage, and uploads are limited by rate rather than total size.
 7. **Consent can be self-asserted through direct signup.** Someone calling the Auth API directly can put consent versions in their signup metadata. They are asserting consent for themselves, so this is low risk, but the record shows only what the client sent.
 8. **Malformed URLs return 500.** A single path segment that can't be percent-decoded, like `/%E0%A4%A`, gets a generic 500 from the framework before our code runs. It exposes nothing, and only scanners send these.
 9. **Custom domains are unproven with real DNS, the Vercel API and HTTPS,** which all need credentials and a real domain. Server actions on a custom domain, such as a contact form submitted from one, also haven't been tested.
 11. **The first admin must be created with SQL.** This is deliberate, and there's no screen for it. See DEPLOYMENT.md.
 12. **Unconfirmed accounts are deleted after 30 days** by the maintenance job. It only touches accounts that never confirmed and never signed in, but the cleanup itself hasn't been run yet.
+13. **Very large sign-in cookies may not survive a token refresh.** In a local test with a 30-second token life, sessions whose cookie was split into three or more parts were signed out on refresh (`refresh_token_already_used`), while normal two-part sessions were fine. Real Google and email sessions are about two parts, so this hasn't been seen in practice. The cause isn't known yet.
 10. **Dev tooling audit findings.** `npm audit` reports moderate findings in the ESLint and shadcn CLI toolchains. These are dev dependencies and don't ship to users. `npm audit --omit=dev` is clean as of 2026-11-03. The automated fixes are major downgrades, so they haven't been applied.
 
 ## Pre-launch checklist

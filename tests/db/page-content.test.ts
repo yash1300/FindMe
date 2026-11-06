@@ -45,7 +45,8 @@ describe("blocks access", () => {
         "insert into public.blocks (profile_id, type, config) values ($1, 'heading', $2) returning id, position",
         [aliceProfile, JSON.stringify({ text: "Hi" })],
       );
-      expect(row.position).toBe(0);
+      // After the Social icons block every page starts with.
+      expect(row.position).toBe(1);
       expect(await q("select 1 from public.blocks where id = $1", [row.id])).toHaveLength(1);
       expect(await q("update public.blocks set is_visible = false where id = $1 returning id", [row.id])).toHaveLength(1);
       expect(await q("delete from public.blocks where id = $1 returning id", [row.id])).toHaveLength(1);
@@ -62,8 +63,10 @@ describe("blocks access", () => {
         "insert into public.blocks (profile_id, type) values ($1, 'divider') returning position",
         [aliceProfile],
       );
-      expect(first.position).toBe(0);
-      expect(second.position).toBe(1);
+      const [{ max }] = await q<{ max: number }>("select max(position) as max from public.blocks where profile_id = $1", [aliceProfile]);
+      expect(second.position).toBe(first.position + 1);
+      expect(second.position).toBe(max);
+      expect(first.position).toBeLessThan(99);
     });
   });
 
@@ -134,10 +137,32 @@ describe("blocks access", () => {
   it("caps the number of blocks on a page", async () => {
     const owner = await createUser(db, { username: "manyblocks" });
     const profile = await profileId(owner);
-    await db.query("insert into public.blocks (profile_id, type) select $1, 'divider' from generate_series(1, 200)", [profile]);
+    await db.query("insert into public.blocks (profile_id, type) select $1, 'divider' from generate_series(1, 199)", [profile]);
     await expect(
       runAs(db, service, (q) => q("insert into public.blocks (profile_id, type) values ($1, 'divider')", [profile])),
     ).rejects.toThrow(/block limit reached/);
+  });
+});
+
+describe("social icons block", () => {
+  it("starts every new page with one, at the top", async () => {
+    const owner = await createUser(db, { username: "iconsfirst" });
+    const { rows } = await db.query<{ type: string; position: number }>(
+      "select type, position from public.blocks where profile_id = $1",
+      [await profileId(owner)],
+    );
+    expect(rows).toEqual([{ type: "social_icons", position: 0 }]);
+  });
+
+  it("allows only one per page, but lets the owner delete it", async () => {
+    const owner = await createUser(db, { username: "iconsonce" });
+    const profile = await profileId(owner);
+    const as = { role: "authenticated", userId: owner } as const;
+    await expect(
+      runAs(db, as, (q) => q("insert into public.blocks (profile_id, type) values ($1, 'social_icons')", [profile])),
+    ).rejects.toThrow(/blocks_one_social_icons_idx/);
+    const deleted = await runAs(db, as, (q) => q("delete from public.blocks where profile_id = $1 and type = 'social_icons' returning id", [profile]));
+    expect(deleted).toHaveLength(1);
   });
 });
 
@@ -149,6 +174,7 @@ describe("reordering", () => {
   beforeAll(async () => {
     owner = await createUser(db, { username: "reorderer" });
     profile = await profileId(owner);
+    await db.query("delete from public.blocks where profile_id = $1", [profile]);
     ids = [];
     for (let i = 0; i < 3; i += 1) ids.push((await addLink(profile)).rows[0].id);
   });
@@ -186,6 +212,7 @@ describe("public_blocks view", () => {
   beforeAll(async () => {
     owner = await createUser(db, { username: "scheduler" });
     profile = await profileId(owner);
+    await db.query("delete from public.blocks where profile_id = $1", [profile]);
     await db.query("update public.profiles set status = 'published' where id = $1", [profile]);
   });
 

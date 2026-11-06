@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "My Page" };
 
 export default async function MyPagePage() {
   const { profile } = await requireOnboardedUser("/dashboard/my-page");
-  const { socialLinks } = await getOwnerContent(profile.id);
+  const { blocks, socialLinks } = await getOwnerContent(profile.id);
   const baseUrl = getAppUrl();
 
   return (
@@ -53,7 +53,7 @@ export default async function MyPagePage() {
           <CardDescription>Drag to reorder. Hiding or removing a link does the same to its button.</CardDescription>
         </CardHeader>
         <CardContent>
-          <SocialManager initialLinks={socialLinks} />
+          <SocialManager initialLinks={socialLinks} initialBlocks={blocks} />
         </CardContent>
       </Card>
 

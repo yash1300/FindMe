@@ -13,7 +13,7 @@ export async function GET() {
   if (limit.status !== "allowed") return new NextResponse("Too many exports. Please try again later.", { status: 429 });
 
   const supabase = await createSupabaseServerClient();
-  const tables = ["accounts", "profiles", "blocks", "social_links", "custom_domains", "leads", "analytics_daily"] as const;
+  const tables = ["accounts", "profiles", "blocks", "social_links", "custom_domains", "leads", "analytics_daily", "shared_themes"] as const;
   const results = await Promise.all(tables.map((table) => supabase.from(table).select("*").limit(100000)));
 
   const failed = results.find((result) => result.error);

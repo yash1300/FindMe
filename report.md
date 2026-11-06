@@ -2,7 +2,7 @@
 
 A plain summary of where each phase stands. The detailed checklist is in [PROJECT_PLAN.md](PROJECT_PLAN.md), and technical notes for whoever continues the work are in [HANDOFF.md](HANDOFF.md).
 
-**Last updated:** 2026-11-05
+**Last updated:** 2026-11-06
 
 ## At a glance
 
@@ -14,7 +14,7 @@ A plain summary of where each phase stands. The detailed checklist is in [PROJEC
 | 4 | Analytics and basic admin access | Live and tested |
 | 5 | Payments | **Not being built.** FindMe is free for everyone for now |
 | 6 | Multiple pages, custom domains, moderation, data export | Live. Custom domains and admin suspend actions not tested live |
-| 7 | AI builder, theme marketplace, recommendations | Not started. Each needs a decision on cost and privacy |
+| 7 | Theme gallery, advanced analytics, recommendations | Done locally on the `phase-7` branch, not live yet. AI builder skipped and payment features out of scope, by your decision |
 | 8 | Security audit, performance and accessibility testing, launch | Not started |
 
 ## Live site status
@@ -27,17 +27,25 @@ A plain summary of where each phase stands. The detailed checklist is in [PROJEC
 2. Test Forgot password from its email.
 3. Check Vercel's Logs tab to see that the daily cleanup job ran.
 
-### Fixes on the `improvements` branch, not live until merged
+### On the `phase-7` branch, not live until merged
 
-- **Google sign-in:** Google now always asks which account to use, so logging out no longer leads to a silent sign-in.
-- **Sign-up screens:** the confirmation screen explains spam folders and what happens with an address that already has an account, and the form says when the email limit has been reached. A failed login also points people who signed up with Google to the right button.
-- **Social links:** each one now also adds a full button that can be edited, and "Add buttons for my links" covers links added earlier. Hiding or removing a link does the same to its button.
-- **Landing page:** it now says clearly that FindMe is free for everyone, in the hero, its own section, the closing section and the footer.
-- **Unreadable themes:** Glass had blank form buttons, and Gradient had white text on white cards. Colours are now checked as the page is drawn, which also repairs pages already saved.
-- **Dropped connections:** saves that lose their connection now show a message instead of stalling silently.
-- **Photo privacy:** location and other hidden data is removed from uploads, keeping the photo's rotation. Images uploaded earlier aren't changed.
+**You need to update the hosted database first**, with `npx supabase db push --linked`, then merge. The two new migrations add the Social icons rule and the theme gallery.
 
-Moving the server to Tokyo is already live: the health check took 0.27 to 0.95 seconds in five checks, compared with about a second before.
+Fixes from your second review:
+
+- **Logging out:** it now has its own route, which always deletes the sign-in cookies, even if Supabase can't be reached. Before, logging out shared a response with the automatic session renewal, so in some cases the browser could keep a fresh session cookie. Google's account chooser was already being requested on the live site, which I checked. FindMe can't sign you out of Google itself, so Google will still list your account to pick.
+- **Social icons:** they now appear only where the Social icons block is. Hiding or deleting the block takes them off the page. Every page gets the block at the top, where icons appeared before. Pages can't have two, and My Page offers "Show icons on my page" when they're off.
+- **Smaller fixes:** a cancelled Google sign-in now says so, instead of "That link is invalid". Adding the same social link twice at once gives a clear message. An empty icons spot no longer leaves a gap.
+
+Phase 7, all free, with no new data collected:
+
+- **Theme gallery** on the Appearance page. Creators share their saved theme by name, and others use it in one click. The creator's name, page and photos are never shared. Each person can share up to 10, and staff can remove any at Admin → Shared themes, which is logged.
+- **Advanced analytics:** each figure is compared with the previous period, and top links show their share of views. There's a list of links nobody clicked, busiest weekdays over 2 weeks or more, and a CSV download.
+- **Suggestions** on the Overview, worked out from simple rules about the page and its numbers. For example: publish, add a photo or bio, move a popular link that sits low on the page, or turn social icons back on. Nothing is sent to an AI service.
+
+Not built: the AI profile builder (skipped by you), and a UPI payment block, removed at your request because payments are out of scope.
+
+Found but not fixed: in a local test with sign-in tokens set to expire after 30 seconds, very large sign-in cookies were signed out on refresh. Normal-size sessions, including Google's, weren't affected. Details are in SECURITY.md.
 
 ### Unexplained
 
@@ -80,16 +88,16 @@ Not built, because FindMe is free for everyone. The Pricing page and billing lin
 
 ## Test results
 
-Latest results are for the `improvements` branch, run against a local copy of the database, in smaller groups because of limited memory.
+Latest results are for the `phase-7` branch, run against a local copy of the database, in smaller groups because of limited memory.
 
 | Check | Result |
 | --- | --- |
 | Lint and type check | Pass |
-| Unit and database tests | 645 passed, plus 15 payment to-dos |
-| Browser: sign-in, accounts, security attacks and this round's fixes | 37 of 37 |
+| Unit and database tests | 667 passed, plus 15 payment to-dos |
+| Browser: this round (logout, social icons, suggestions, analytics download, theme gallery), sign-in, accounts and security attacks | 43 of 43 |
 | Browser: page builder and marketing | 26 of 26 |
 | Browser: analytics, admin, Phase 6 and dark mode | 23 of 23 |
-| Every page on phone and desktop, in light and dark, plus all 10 themes (130 page views) | No sideways scrolling or browser errors. The 48 serious readability failures, all on public page styles, were fixed, and all 10 themes re-checked clean |
+| Every page on phone and desktop, in light and dark, plus all 10 themes (130 page views, previous round) | No sideways scrolling or browser errors. The 48 serious readability failures, all on public page styles, were fixed, and all 10 themes re-checked clean |
 
 The dashboard, marketing and admin screens had no serious accessibility failures of their own, in an automated check. That doesn't replace testing with real assistive technology, which is still part of Phase 8.
 

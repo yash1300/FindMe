@@ -33,7 +33,15 @@ Reserved and prohibited names return the `invalid` reason with a generic message
 
 ### `GET /auth/callback`
 
-Browser redirect target for Google OAuth and email links. Takes either `code` (PKCE) or `token_hash` and `type` (`signup`, `email`, `recovery`, `email_change`), plus an optional `next` path. `next` passes through `safeRedirectPath`, so only same-origin relative paths are honoured, and redirects are built from `NEXT_PUBLIC_APP_URL` rather than the Host header. A recovery link also sets a 15-minute `HttpOnly` marker cookie, which `resetPasswordAction` requires. On failure it redirects to `/login?error=auth_callback`.
+Browser redirect target for Google OAuth and email links. Takes either `code` (PKCE) or `token_hash` and `type` (`signup`, `email`, `recovery`, `email_change`), plus an optional `next` path. `next` passes through `safeRedirectPath`, so only same-origin relative paths are honoured, and redirects are built from `NEXT_PUBLIC_APP_URL` rather than the Host header. A recovery link also sets a 15-minute `HttpOnly` marker cookie, which `resetPasswordAction` requires. On failure it redirects to `/login?error=auth_callback`. If Google or Supabase reports an `error` (such as a cancelled sign-in), it redirects to `/login?error=oauth_cancelled`.
+
+### `POST /auth/signout`
+
+Plain form post from the Log out buttons. Rejects cross-site requests (403), ends this browser's Supabase session (`scope: "local"`), deletes every `sb-*` cookie and the selected-page cookie whatever Supabase replied, and answers `303` to `/`. It sits outside the paths where `proxy.ts` renews sessions, so a renewal can't set a fresh cookie in the same response.
+
+### `GET /dashboard/analytics/export?range=…&from=…&to=…`
+
+The selected page's daily figures for the range as CSV: one row per day and measure (total, referrer, device, browser, os, country, link), with links named. Owner only, read under RLS. Cells that a spreadsheet could run as formulas are prefixed with `'`.
 
 ## Server Actions
 
@@ -44,7 +52,6 @@ All of these validate with Zod on the server. Form actions return `{ status: "su
 | `registerAction` | None | IP | Same response whether or not the email exists |
 | `loginAction` | None | IP and email | Generic error for bad credentials |
 | `signInWithGoogleAction` | None | IP | Redirects to Google |
-| `signOutAction` | User | — | |
 | `requestPasswordResetAction` | None | IP and email | Same response whether or not the email exists |
 | `resetPasswordAction` | Recovery session | — | |
 | `resendVerificationAction` | None | IP and email | Same response whether or not the email exists |
@@ -63,7 +70,11 @@ These take typed objects rather than forms, and return `{ ok: true, ... }` or `{
 | `setBlockVisibilityAction`, `deleteBlockAction`, `duplicateBlockAction` | User | |
 | `reorderBlocksAction` | User | Returns `conflict` if the list is out of date, and the client rolls back |
 | `saveSocialLinkAction` | User | Adds or updates. The link must really go to that platform's site |
-| `setSocialVisibilityAction`, `deleteSocialLinkAction`, `reorderSocialLinksAction` | User | |
+| `setSocialVisibilityAction`, `deleteSocialLinkAction`, `reorderSocialLinksAction` | User | Hiding or removing a link does the same to the button made for it |
+| `addSocialButtonsAction` | User | Adds a button for each social link that lacks one |
+| `showSocialIconsAction` | User | Shows the hidden Social icons block, or adds one at the top |
+| `shareThemeAction`, `removeSharedThemeAction` | User | Shares the saved theme to the gallery (without photos), or stops sharing it. Ten per person |
+| `applyGalleryThemeAction` | User | Replaces the selected page's theme with a gallery theme, validated again first |
 | `uploadMediaAction` | User, 40 an hour | `FormData`. Up to 5 MB. Type comes from the file's bytes |
 | `updateProfileDetailsAction`, `saveThemeAction` | User | Require the version the edit started from, and return `conflict` if it's stale |
 | `changeUsernameAction` | User | One a day. Old name held for 30 days |
@@ -81,7 +92,7 @@ These take typed objects rather than forms, and return `{ ok: true, ... }` or `{
 
 ### Admin actions
 
-Each checks the staff role on the server, requires a reason, and calls a database function that saves the change and its log entry together: `setAccountStatusAction`, `setProfileSuspendedAction`, `hideBlockAction`, `closeReportAction`, and `updateSettingsAction` (admins only).
+Each checks the staff role on the server, requires a reason, and calls a database function that saves the change and its log entry together: `setAccountStatusAction`, `setProfileSuspendedAction`, `hideBlockAction`, `closeReportAction`, `removeSharedThemeAsStaffAction`, and `updateSettingsAction` (admins only).
 
 ### Public form actions
 

@@ -6,7 +6,6 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { FormSkeleton } from "@/components/forms/form-skeleton";
 import { Button } from "@/components/ui/button";
 import { OnboardingForm } from "@/features/accounts/components/onboarding-form";
-import { signOutAction } from "@/features/auth/actions";
 import { getAccountContext, requireUser } from "@/features/auth/session";
 import { hasCurrentConsent } from "@/features/legal/versions";
 import { OnboardingWizard } from "@/features/onboarding/components/wizard";
@@ -69,7 +68,7 @@ export default function OnboardingPage() {
         <Logo />
         <div className="flex items-center gap-1">
           <ThemeToggle />
-          <form action={signOutAction}>
+          <form action="/auth/signout" method="post">
             <Button type="submit" variant="ghost" size="sm">
               Log out
             </Button>

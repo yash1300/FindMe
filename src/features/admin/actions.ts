@@ -94,6 +94,22 @@ export async function closeReportAction(_prev: ActionState, formData: FormData):
   return { status: "success", message: "Report closed." };
 }
 
+export async function removeSharedThemeAsStaffAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const { user } = await requireStaff();
+  const { theme, reason } = formValues(formData, ["theme", "reason"]);
+  const parsedReason = reasonSchema.safeParse(reason ?? "");
+  if (!parsedReason.success) return { status: "error", fieldErrors: { reason: parsedReason.error.issues[0].message } };
+  if (!idSchema.safeParse(theme).success) return formError(UNAVAILABLE_MESSAGE);
+
+  const { error } = await createSupabaseAdminClient().rpc("admin_remove_shared_theme", {
+    p_actor: user.id, p_theme: theme, p_reason: parsedReason.data,
+  });
+  if (error) return fail("admin.remove_theme_failed", error);
+
+  revalidatePath("/admin", "layout");
+  return { status: "success", message: "Theme removed from the gallery." };
+}
+
 export async function updateSettingsAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const { user } = await requireStaff({ adminOnly: true });
   const { maxProfiles, announcement } = formValues(formData, ["maxProfiles", "announcement"]);

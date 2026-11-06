@@ -17,6 +17,7 @@ export function demoProfile(theme: Theme = THEME_PRESETS.modern): ProfileViewDat
       { id: "s3", platform: "spotify", url: "https://open.spotify.com" },
     ],
     blocks: [
+      { id: "b0", type: "social_icons", config: {} },
       { id: "b1", type: "link", config: { title: "My latest video", url: "https://example.com/", icon: "video" } },
       { id: "b2", type: "link", config: { title: "Book a session", url: "https://example.com/", icon: "calendar" } },
       { id: "b3", type: "link", config: { title: "Visit my shop", url: "https://example.com/", icon: "shopping-bag" } },

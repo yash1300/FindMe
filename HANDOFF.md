@@ -2,21 +2,21 @@
 
 Read this first, then [CLAUDE.md](CLAUDE.md) (the spec) and [PROJECT_PLAN.md](PROJECT_PLAN.md) (the checklist).
 
-**Last updated:** 2026-11-05. **Current position:** Phases 1–4 and 6 are merged to `main` and live. The `improvements` branch holds the fixes from the user's first live review, and needs merging. Sign-up and reset emails need a custom SMTP sender. Phase 5 isn't being built, because FindMe is free. See [report.md](report.md), and keep it updated after each phase, as the user asked.
+**Last updated:** 2026-11-06. **Current position:** Phases 1–4 and 6, plus the first round of live-review fixes, are merged to `main` and live. The `phase-7` branch holds Phase 7 (theme gallery, advanced analytics, recommendations), the logout fix and the Social icons fix, verified locally. It adds two migrations, so the hosted database must be updated before merging. Phase 5 and anything payment-related are out of scope, because FindMe is free; the AI builder was skipped by the owner. See [report.md](report.md), and keep it updated after each phase, as the user asked.
 
 ## State of the project
 
-- **Code:** on GitHub at <https://github.com/yash1300/FindMe>. `phase-6` must not be merged before step 1 below.
-- **Live site:** <https://findme-dun.vercel.app>. At the last check it couldn't reach the database: `/api/health` returned 503 and the sitemap used `localhost:3000`, even after the user updated Vercel. It hasn't been rebuilt with the values, or they aren't set for Production. Routing, 404s and headers work, and no secrets were found in the 13 client code files checked.
-- **Hosted Supabase:** project `bzlelfxdazucsoofngce`, with migrations through `20261104000000` applied and audited. **`20261105000000_analytics` and `20261106000000_business` aren't applied.** The agent's attempt was blocked by the permission system as a production deploy, so it needs the user's explicit approval, or the user can run it.
-- **Written but never run:** Google sign-in on the live site, Resend email, the Vercel domains API, and the maintenance job's cleanup.
+- **Code:** on GitHub at <https://github.com/yash1300/FindMe>.
+- **Live site:** <https://findme-dun.vercel.app>, deployed from `main` by Vercel, in region `hnd1` next to the database.
+- **Hosted Supabase:** project `bzlelfxdazucsoofngce` (Tokyo), migrations through `20261106000000` applied. **`20261107000000_social_icons_block` and `20261108000000_theme_gallery` are not applied yet.** Production database changes need the user to run them, or their explicit approval.
+- **Email:** Supabase's built-in sender refuses most sign-ups (`over_email_send_rate_limit`). The user must set up custom SMTP (ENV_SETUP.md, Step 4).
+- **Written but never run live:** a real Google sign-in after the account-chooser change, real confirmation and reset emails, the Vercel domains API, and the maintenance job's cleanup.
 
-## To go live, in this order
+## To go live with `phase-7`, in this order
 
-1. `npx supabase db push --remote`, by the user or with their explicit approval.
-2. The user checks the Vercel variables are set for Production.
-3. Merge `phase-6`, which triggers a rebuild.
-4. Re-test the live site, and re-run the hosted audit on the new tables. The scripts were session-only, so recreate them from SECURITY.md's description: temporary users made through the admin API, attacks with real sessions, cleanup, then read-only catalogue queries with `supabase db query --remote --read-only`.
+1. `npx supabase db push --linked`, by the user or with their explicit approval. The migration gives every existing page a Social icons block at the top, where icons already appeared, so no page changes how it looks.
+2. Merge `phase-7`, which triggers a rebuild.
+3. Re-test on the live site: logout then Log in, the Social icons block, the theme gallery, analytics CSV, and the hosted audit on `shared_themes`.
 
 ## Running it
 
